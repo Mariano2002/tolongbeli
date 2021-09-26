@@ -1,0 +1,477 @@
+{%  load static %}
+<!doctype html>
+<html class="no-js" lang="zxx">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>eCommerce HTML-5 Template </title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="manifest" href="site.webmanifest">
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico' %}">
+
+		<!-- CSS here -->
+            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/nice-select.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+   </head>
+
+   <body>
+    <header>
+        <p class="text-center" style="border-style: solid; border-color: crimson; background-color: crimson; color: black;">Our website was just launched, so please if you face any problem let us know, and we will fix it!</p>
+        <!-- Header Start -->
+       <div class="header-area">
+            <div class="main-header ">
+                <div class="header-top top-bg d-none d-lg-block">
+                   <div class="container-fluid">
+                       <div class="col-xl-12">
+                            <div class="row d-flex justify-content-between align-items-center">
+                                <div class="header-info-left d-flex">
+                                    <ul class="contact-now">     
+                                        <li>+60 111 030 0940</li>
+                                    </ul>
+                                </div>
+                                <div class="header-info-right">
+                                   <ul>
+                                       <li><a>Kadar tukar RM 1= RP 3300 , Kadar upah 10% dari total cost</a></li>
+                                   </ul>
+                                </div>
+                            </div>
+                       </div>
+                   </div>
+                </div>
+               <div class="header-bottom  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-1 col-lg-1 col-md-1 col-sm-3">
+                                <div class="logo">
+                                  <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 col-lg-8 col-md-7 col-sm-5">
+                                <!-- Main-menu -->
+                                <div class="main-menu f-right d-none d-lg-block">
+                                    <nav>                                                
+                                        <ul id="navigation">                                                                                                                                     
+                                            <li><a href="home">Home</a></li>
+                                            <li><a href="shop">Shop</a></li>
+                                            {% if user.is_superuser %}
+                                            <li><a href="calculator">Calculator</a>
+                                                <ul class="submenu">
+                                                    <li><a href="calculator_configuration">Configure calculator</a></li>
+                                                </ul>
+                                            </li>
+                                            {% else %}
+                                            <li><a href="calculator">Calculator</a></li>
+                                            {% endif %}
+
+                                            <li><a href="#">Pages</a>
+                                                <ul class="submenu">
+                                                    <li><a href="#">Tracking</a></li>
+                                                    <li><a href="#">Frequently asked questions</a></li>
+                                                    <li><a href="#">Terms and conditions</a></li>
+                                                    <li><a href="#">Testimonial</a></li>
+                                                    <li><a href="#">Contact</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div> 
+                            <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
+                                <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
+                                    {% if user.is_authenticated %}
+                                       <li class="d-none d-lg-block"> <a href="my_orders" class="btn header-btn">My Orders</a></li>
+                                       <li class="d-none d-lg-block"> <a href="logout" class="btn header-btn">Log Out</a></li>
+                                    {% else %}
+                                       <li class="d-none d-lg-block"> <a href="login" class="btn header-btn">Sign in</a></li>
+                                       <li class="d-none d-lg-block"> <a href="signup" class="btn header-btn">Register</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+               </div>
+            </div>
+       </div>
+        <!-- Header End -->
+    </header>
+
+    <main>
+
+        <!-- slider Area Start -->
+        <div class="slider-area ">
+            <!-- Mobile Menu -->
+            <div class="slider-active">
+                <div class="single-slider slider-height" data-background="{% static 'assets/img/hero/h1_hero.jpg' %}">
+                    <div class="container">
+                        <div class="row d-flex align-items-center justify-content-between">
+                            <div class="col-xl-6 col-lg-6 col-md-6 col-sm-6 d-none d-md-block">
+                                <div class="hero__img" data-animation="bounceIn" data-delay=".4s">
+                                    <img src="{% static 'assets/img/hero/hero_man.png' %}" alt="">
+                                </div>
+                            </div>
+                            <div class="col-xl-5 col-lg-5 col-md-5 col-sm-8">
+                                <div class="hero__caption">
+                                    <span data-animation="fadeInRight" data-delay=".4s">RM35* kg/vol</span>
+                                    <h1 data-animation="fadeInRight" data-delay=".6s">Promosi <br> Jun </h1>
+                                    <p data-animation="fadeInRight" data-delay=".8s">Berbelanja barangan dari Indonesia kini tidak mustahil Realisasikan keinginan anda!</p>
+                                    <!-- Hero-btn -->
+                                    <div class="hero__btn" data-animation="fadeInRight" data-delay="1s">
+                                        <a href="https://wa.me/601113497407" class="btn hero-btn">WhatsApp</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- slider Area End-->
+
+
+
+        <div class="feature_part product_image_area">
+            <div class="container">
+                <div class="row justify-content-center">
+                <div class="col-lg-8">
+                  <div class="single_product_text text-center">
+                    <h3>Sedikit Info tentang portal shopping Indonesia.</h3>
+                    <p>
+                        Di Indonesia terdapat pelbagai website shopping yang menarik tetapi yang paling banyak pengguna adalah Tokopedia, Bukalapak, Shopee Indonesia, Blibli dan Lazada Indonesia. Di indonesia juga terdapat banyak barangan yang susah di dapati di Malaysia seperti makanan, hobby item, kosmetik, sparepart automotive dan sebagainya.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Best Product Start -->
+        <div class="best-product-area lf-padding" >
+           <div class="product-wrapper bg-height" style="background-image: url('{% static 'assets/img/categori/card.png' %}')">
+                <div class="container position-relative">
+                    <div class="row justify-content-between align-items-end">
+                        <div class="col-xl-12 col-lg-24 text-center">
+                            <div class="best-product-caption">
+                                <h2>Mengapa pilih kami?</h2>
+                                <p>Kami satu-satunya di Malaysia yang menyediakan servis beli barangan Indonesia dan pos semula ke Malaysia dan telah beroperasi 3 tahun. Syarikat kami berdaftar dengan SSM<br><br>
+                                <b>TOLONGBELI DIYMAN RESOURCES</b><br>
+                                NO. PENDAFTARAN : 202003229276</p>
+                                <div class="shop-method-area section-padding10">
+                                    <div class="container">
+                                        <div class="row d-flex justify-content-between">
+                                            <div class="col-xl-3 col-lg-3 col-md-6">
+                                                <div class="single-method mb-40">
+                                                    <i class="ti-money"></i>
+                                                    <h6>Pembayaran RM</h6>
+                                                    <p>Transaksi dalam matawang RM dalam Malaysia</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-3 col-lg-3 col-md-6">
+                                                <div class="single-method mb-40">
+                                                    <i class="ti-headphone-alt"></i>
+                                                    <h6>Layanan Insan</h6>
+                                                    <p>Talian whatsapp dikelola oleh perseorangan. Anda akan dilayan dengan insan bukan Bot</p>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-3 col-lg-3 col-md-6">
+                                                <div class="single-method mb-40">
+                                                    <i class="ti-lock"></i>
+                                                    <h6>Trusted/Terjamin</h6>
+                                                    <p>Kami hargai pelanggan justeru itu kepercayaan anda amanah kami</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           </div>
+        </div>
+        <!-- Best Product End-->
+
+
+
+
+
+        <div class="feature_part product_image_area">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="feature_part_tittle text-center">
+                            <h3>Cara Order</h3>
+                            <p>Cara order barang adalah secara manual, lihat carta ringkas dibawah ni</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice1.png' %}" alt="#">
+                            <p>Wasap kami dulu, dan anda di minta untuk berikan Nama, Alamat lengkap(negeri alamat penerima), dan no telefon. Dan nyatakan Barang apa yang nak di beli contoh, kosmetik/parts/elektronik dll</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice2.png' %}" alt="#">
+                            <p>Kami minta anda berikan link barang yang anda mahu. Berikan serba sedikit maklumat size packaging (panjang , Tinggi, Lebar dan Berat) untuk kami bantu buat anggaran awal kos pos anda<br><br></p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice3.png' %}" alt="#">
+                            <p>Setelah link barang dan info telah diberikan kami akan buat kiraan harga barang dan juga anggaran awal kos pos. setelah di persetujui anda diminta untuk buat bayaran. Bayaran di buat dalam nilai RM<br><br></p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice4.png' %}" alt="#">
+                            <p>Setelah itu kami buat pembelian. Di ingatkan mungkin seller anda tidak meneruskan order, antara sebabnya seller anda tiada stok. kami akan maklumkan anda sama ada nak cari barang lain atau sebaliknya</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice5.png' %}" alt="#">
+                            <p>Setelah barang anda sampai di warehouse Indonesia , kami akan ukur dan timbang semula jika ada penambahan kos pos anda perlu tambah. Jika tiada apa-apa perubahan kami teruskan pos dan berikan tracking</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-sm-6">
+                        <div class="single_feature_part">
+                            <img src="{% static 'assets/img/sevice6.png' %}" alt="#">
+                            <p>Setelah dapat tracking anda boleh check secara berkala. Tunggu barang anda sampai Inshaallah jika tiada kelewatan dari pihak kastam, item akan cepat sampai pada anda. Yeah anda berjaya shopping dari Indonesia!</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+          </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Category Area Start-->
+        <section class="category-area section-padding30">
+            <div class="container-fluid">
+                <!-- Section Tittle -->
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="section-tittle text-center mb-85">
+                            <h2>Tokopedia</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="single-category mb-30">
+                            <div class="category-img">
+                                <img src="{% static 'assets/img/taken2.jpg' %}" alt="">
+                            </div>
+                        </div>
+                    </div>
+                     <div class="col-xl-4 col-lg-6">
+                        <div class="single-category mb-30">
+                            <div class="text-center">
+                                <div class="category-caption">
+                                   <p>Tokopedia is Indonesia's number 1 shopping website portal. It is estimated that 140 million visitors in 1 period of 1 month and has the highest sales and a score of 99% customer satisfaction.</p>
+                                    <p>Servis perkhidmatan kami meliputi Malaysia, Singapura dan juga Brunei. Untuk postage Udara kami cover dari Indonesia ke Semenanjung Malaysia(West Malaysia) dan Sabah Sarawak(East Malaysia), Singapura dan Brunei.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="single-category mb-30">
+                                <div class="category-caption">
+                                    <p>Untuk shipment Laut hanya cover untuk Semenanjung Malaysia(west Malaysia) sahaja. Bagi Sabah/Sarawak jika anda berminat untuk menggunakan shipment laut ada pertambahan kos kadar pertambahan kos mengikut kurier J&T sea shipment.(Ini sebagai alternative bagi anda, sebab kami tak pos laut ke Sabah/Sarawak)</p>
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Category Area End-->
+
+
+
+        <div class="latest-wrapper lf-padding">
+            <div class="latest-area latest-height d-flex align-items-center" data-background="{% static 'assets/img/taken4.jpg' %}">
+                <div class="container">
+                    <div class="row d-flex align-items-center">
+                        <div class="col-xl-5 col-lg-5 col-md-6">
+                            <div class="latest-caption">
+                                <h2>Offer Bulan Jun</h2>
+                                <p>Penurunan kos pos ke RM35* dari harga asal RM40*. Jangan ketinggalan untuk mendapatkan Offer Terhebat Ini!</p>
+                            </div>
+                        </div>
+                         <div class="col-xl-4 col-lg-5 col-md-6 ">
+                            <div class="latest-subscribe">
+                                <form action="https://wa.me/601113497407">
+                                    <button>WHATSAPP SEKARANG</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+    </main>
+   <footer>
+
+       <!-- Footer Start-->
+       <div class="footer-area footer-padding">
+           <div class="container">
+               <div class="row d-flex justify-content-between">
+                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6">
+                      <div class="single-footer-caption mb-50">
+                        <div class="single-footer-caption mb-30">
+                             <!-- logo -->
+                            <div class="footer-logo">
+                                <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                            </div>
+                            <div class="footer-tittle">
+                                <div class="footer-pera">
+                                    <p>Tolong Beli </p>
+                               </div>
+                            </div>
+                        </div>
+                      </div>
+                   </div>
+                   <div class="col-xl-2 col-lg-3 col-md-3 col-sm-5">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Quick Links</h4>
+                               <ul>
+                                   <li><a href="home">Home</a></li>
+                                    {% if user.is_authenticated %}
+                                        <li><a href="my_orders">My Orders</a></li>
+                                        <li><a href="logout">Log Out</a></li>
+                                    {% else %}
+                                        <li><a href="login">Sign In</a></li>
+                                        <li><a href="signup">Register</a></li>
+                                    {% endif %}
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="col-xl-3 col-lg-3 col-md-4 col-sm-7">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Shopping</h4>
+                               <ul>
+                                   <li><a href="shop">Shop</a></li>
+                                   <li><a href="calculator">Calculator</a></li>
+                                   <li><a href="#">Tracking</a></li>
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-7">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Support</h4>
+                               <ul>
+                                <li><a href="#">Frequently Asked Questions</a></li>
+                                <li><a href="#">Terms & Conditions</a></li>
+                                <li><a href="#">Testimonials</a></li>
+                                <li><a href="#">Contact</a></li>
+                            </ul>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+               <!-- Footer bottom -->
+               <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-7">
+                    <div class="footer-copy-right">
+                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This website is made by <a href="https://www.fiverr.com/mariano_b" target="_blank">Mariano Baçi</a>
+  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>                   </div>
+                </div>
+                 <div class="col-xl-5 col-lg-5 col-md-5">
+                    <div class="footer-copy-right f-right">
+                        <!-- social -->
+                        <div class="footer-social">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           </div>
+       </div>
+       <!-- Footer End-->
+
+   </footer>
+   
+	<!-- JS here -->
+	
+		<!-- All JS Custom Plugins Link Here here -->
+        <script src="{% static 'assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
+		<!-- Jquery, Popper, Bootstrap -->
+		<script src="{% static 'assets/js/vendor/jquery-1.12.4.min.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+	    <!-- Jquery Mobile Menu -->
+        <script src="{% static 'assets/js/jquery.slicknav.min.js' %}"></script>
+
+		<!-- Jquery Slick , Owl-Carousel Plugins -->
+        <script src="{% static 'assets/js/owl.carousel.min.js' %}"></script>
+        <script src="{% static 'assets/js/slick.min.js' %}"></script>
+
+		<!-- One Page, Animated-HeadLin -->
+        <script src="{% static 'assets/js/wow.min.js' %}"></script>
+		<script src="{% static 'assets/js/animated.headline.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.magnific-popup.js' %}"></script>
+
+		<!-- Scrollup, nice-select, sticky -->
+        <script src="{% static 'assets/js/jquery.scrollUp.min.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.nice-select.min.js' %}"></script>
+		<script src="{% static 'assets/js/jquery.sticky.js' %}"></script>
+        
+        <!-- contact js -->
+        <script src="{% static 'assets/js/contact.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.form.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.validate.min.js' %}"></script>
+        <script src="{% static 'assets/js/mail-script.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.ajaxchimp.min.js' %}"></script>
+        
+		<!-- Jquery Plugins, main Jquery -->	
+        <script src="{% static 'assets/js/plugins.js' %}"></script>
+        <script src="{% static 'assets/js/main.js' %}"></script>
+        
+    </body>
+</html>

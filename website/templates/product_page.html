@@ -1,0 +1,358 @@
+{%  load static %}
+<!DOCTYPE html>
+<html class="no-js" lang="zxx">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>eCommerce HTML-5 Template </title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="manifest" href="site.webmanifest">
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/nice-select.css' %}">
+        <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+
+        <!-- Fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+        <!-- CSS -->
+        <link href="{% static 'assets/css/product_style.css' %}" rel="stylesheet">
+        <meta name="robots" content="noindex,follow" />
+
+    </head>
+
+  <body>
+
+
+
+    <header>
+        <!-- Header Start -->
+       <div class="header-area">
+            <div class="main-header ">
+                <div class="header-top top-bg d-none d-lg-block">
+                   <div class="container-fluid">
+                       <div class="col-xl-12">
+                            <div class="row d-flex justify-content-between align-items-center">
+                                <div class="header-info-left d-flex">
+                                    <ul class="contact-now">
+                                        <li>+60 111 030 0940</li>
+                                    </ul>
+                                </div>
+                                <div class="header-info-right">
+                                   <ul>
+                                       <li><a>Kadar tukar RM 1= RP 3300 , Kadar upah 10% dari total cost</a></li>
+                                   </ul>
+                                </div>
+                            </div>
+                       </div>
+                   </div>
+                </div>
+               <div class="header-bottom  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-1 col-lg-1 col-md-1 col-sm-3">
+                                <div class="logo">
+                                  <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 col-lg-8 col-md-7 col-sm-5">
+                                <!-- Main-menu -->
+                                <div class="main-menu f-right d-none d-lg-block">
+                                    <nav>
+                                        <ul id="navigation">
+                                            <li><a href="home">Home</a></li>
+                                            <li><a href="shop">Shop</a></li>
+                                            {% if user.is_superuser %}
+                                            <li><a href="calculator">Calculator</a>
+                                                <ul class="submenu">
+                                                    <li><a href="calculator_configuration">Configure calculator</a></li>
+                                                </ul>
+                                            </li>
+                                            {% else %}
+                                            <li><a href="calculator">Calculator</a></li>
+                                            {% endif %}
+
+                                            <li><a href="#">Pages</a>
+                                                <ul class="submenu">
+                                                    <li><a href="#">Tracking</a></li>
+                                                    <li><a href="#">Frequently asked questions</a></li>
+                                                    <li><a href="#">Terms and conditions</a></li>
+                                                    <li><a href="#">Testimonial</a></li>
+                                                    <li><a href="#">Contact</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
+                                <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
+                                    {% if user.is_authenticated %}
+                                       <li class="d-none d-lg-block"> <a href="my_orders" class="btn header-btn">My Orders</a></li>
+                                       <li class="d-none d-lg-block"> <a href="logout" class="btn header-btn">Log Out</a></li>
+                                    {% else %}
+                                       <li class="d-none d-lg-block"> <a href="login" class="btn header-btn">Sign in</a></li>
+                                       <li class="d-none d-lg-block"> <a href="signup" class="btn header-btn">Register</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+               </div>
+            </div>
+       </div>
+        <!-- Header End -->
+    </header>
+
+
+
+
+    <p class="text-center" style="border-style: solid; border-color: crimson; background-color: crimson; color: black;">Sometimes the shipping price can be incorrect. In these cases or in case that the total price needs an adjustment we will send a second bill, or we will refund you.</p>
+    <main class="container">
+
+      <!-- Left Column / Headphones Image -->
+      <div style="margin-top: 50px;" class="left-column">
+        <img data-image="{{ image }}" class="active" src="{{ image }}" alt="">
+        {% for image in images %}
+            <img data-image="{{ image }}" src="{{ image }}" alt="">
+        {% endfor %}
+
+      </div>
+
+
+      <!-- Right Column -->
+      <div style="padding-left: 50px;" class="right-column">
+
+        <!-- Product Description -->
+        <div class="product-description">
+           <span>{{ shop_location }}</span>
+          <h3 style="font-weight: 300; font-size: 25px; color: #43484D;font-family: Roboto;">{{ name }}</h3>
+        </div>
+
+        <!-- Product Configuration -->
+        <div class="product-configuration">
+
+          <!-- Product Color -->
+          <div class="product-color">
+            <span>Images</span>
+            <div class="color-choose">
+              {% for image in images %}
+                  <div>
+                    <img style="max-width: 60px;" src="{{ image }}" data-image="{{ image }}" type="radio" id="{{ image }}">
+                  </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Cable Configuration -->
+          <div class="cable-config">
+            {% if models|length > 0 %}
+                <span>Variations</span>
+
+                <div class="cable-choose">
+
+                  <select name="variants" id="variants" onchange="javascript:change_price(this)" onload="javascript:change_price(this)">
+                      {% for model in models %}
+                          {% if model.name == "" %}
+                            <option class="variants" value="Default" id="Default">Default</option>
+                          {% else %}
+                            <option class="variants" value="{{ model.name }}" id="{{ model.name }}">{{ model.name }}</option>
+                          {% endif %}
+                      {% endfor %}
+                  </select>
+                </div>
+
+            {% endif %}
+              <br>
+            <a href="{{ url }}" target="_blank">See more details</a>
+          </div>
+
+        <div class="row">
+            <div class="col col-lg-4">
+              <div class="cable-config">
+                  <span>Stock</span>
+                  <div class="cable-choose">
+                      <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ models.0.stock }}" onchange="javascript:change_stock(this)">
+                  </div>
+              </div>
+            </div>
+            <div class="col col-lg-4">
+              <div class="cable-config">
+                  <span>Rate</span>
+                  <div class="cable-choose">
+                      <select name="rates" id="rates">
+                            <option class="rate" value="Normal" id="Normal">Normal</option>
+                            <option class="rate" value="Sensitive" id="Sensitive">Sensitive</option>
+                      </select>
+                  </div>
+              </div>
+            </div>
+            <div class="col col-lg-4">
+              <div class="cable-config">
+                  <span>Country</span>
+                  <div class="cable-choose">
+                      <select name="countries" id="countries">
+                            <option class="country" value="Malaysia1" id="Malaysia1">Malaysia1</option>
+                            <option class="country" value="Malaysia2" id="Malaysia2">Malaysia2</option>
+                            <option class="country" value="Singapore" id="Singapore">Singapore</option>
+                            <option class="country" value="Brunel" id="Brunel">Brunel</option>
+                      </select>
+                  </div>
+              </div>
+            </div>
+        </div>
+
+        <!-- Product Pricing -->
+        <div class="product-price">
+            <span id="price" class="price" style="font-weight: 300;font-size: 25px;color: #43484D;">Rp{{ models.0.price }}</span>
+        </div>
+
+        <div class="product-price">
+            <span id="stock" class="stock" style="font-weight: 300;font-size: 25px;color: #43484D;">Stock: {{ models.0.stock }}</span>
+        </div>
+
+        <div class="product-price">
+            <span id="shipping_price" class="price" style="font-weight: 300;font-size: 25px;color: #43484D;">Shipping: Rp{{ shipping }}</span>
+        </div>
+      <br>
+      <a onclick="return buy()" href="#" id="buy" class="cart-btn">Buy now</a>
+      <br>
+      <br>
+
+        <!-- Product Description -->
+        <div class="product-description">
+          <p  style="font-family: Roboto;">{{ description|linebreaksbr }}</p>
+        </div>
+
+      </div>
+      </div>
+    </main>
+
+
+
+
+    <script>
+
+        function change_stock(element) {
+            var id_button = document.getElementById("variants").options[document.getElementById("variants").selectedIndex].id;
+            {% for model in models %}
+                if('{{ model.name }}' == id_button){
+                    console.log("same")
+                    console.log("{{ model.stock }}")
+                    console.log(document.getElementById("quantity").value)
+                    if (document.getElementById("quantity").value > {{ model.stock }}) {
+                        document.getElementById("quantity").value = {{ model.stock }};
+                        }
+                    else if (document.getElementById("quantity").value === "") {
+                        document.getElementById("quantity").value = 1;
+                        }
+                }
+            {% endfor %}
+        }
+
+
+        function change_price(element) {
+            var id_button = element.options[element.selectedIndex].id;
+            console.log(id_button);
+            console.log(2);
+            {% for model in models %}
+                if('{{ model.name }}' == id_button){
+                    console.log("{{ model.price }}")
+                    document.getElementById("price").innerText = "Rp{{ model.price }}";
+                    document.getElementById("stock").innerText = "Stock: {{ model.stock }}";
+                    document.getElementById("quantity").value = "1";
+                    document.getElementById("quantity").max = {{ model.stock }};
+                }
+            {% endfor %}
+        }
+
+    </script>
+    <script>
+        function buy() {
+            try {
+                variant = document.getElementById("variants").options[document.getElementById("variants").selectedIndex].id;
+                quantity = document.getElementById("quantity").value;
+                rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
+                country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
+                console.log(rate)
+                console.log(country)
+            }
+            catch {
+                return false
+            }
+
+
+            var id_button = document.getElementById("variants").options[document.getElementById("variants").selectedIndex].id;
+            {% for model in models %}
+                if('{{ model.name }}' == id_button){
+                    if ({{ model.stock }} == 0 || document.getElementById("quantity").value > {{ model.stock }}) {
+                        return false
+                        }
+                }
+            {% endfor %}
+
+
+
+            if("{{ url }}".includes("shopee.co.id")){
+                document.getElementById("buy").href = "{% url 'buy_shopee' id 12345 54321 67890 9876 %}".replace(/12345/, variant).replace(/54321/, quantity).replace(/67890/, rate).replace(/9876/, country);
+            } else {
+                document.getElementById("buy").href = "{% url 'buy_tokopedia' id 12345 54321  67890 9876 %}".replace(/12345/, variant).replace(/54321/, quantity).replace(/67890/, rate).replace(/9876/, country);
+            }
+        }
+    </script>
+    <!-- Scripts -->
+    <script src="{% static 'assets/js/jquery-1.12.1.min.js' %}" charset="utf-8"></script>
+    <script src="{% static 'assets/js/product_script.js' %}" charset="utf-8"></script>
+
+    <!-- All JS Custom Plugins Link Here here -->
+    <script src="{% static 'assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
+
+    <!-- Jquery, Popper, Bootstrap -->
+    <script src="{% static 'assets/js/vendor/jquery-1.12.4.min.js' %}"></script>
+    <script src="{% static 'assets/js/popper.min.js' %}"></script>
+    <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+    <!-- Jquery Mobile Menu -->
+    <script src="{% static 'assets/js/jquery.slicknav.min.js' %}"></script>
+
+    <!-- Jquery Slick , Owl-Carousel Plugins -->
+    <script src="{% static 'assets/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'assets/js/slick.min.js' %}"></script>
+
+    <!-- One Page, Animated-HeadLin -->
+    <script src="{% static 'assets/js/wow.min.js' %}"></script>
+    <script src="{% static 'assets/js/animated.headline.js' %}"></script>
+
+    <!-- Scrollup, nice-select, sticky -->
+    <script src="{% static 'assets/js/jquery.scrollUp.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.nice-select.min.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.sticky.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.magnific-popup.js' %}"></script>
+
+    <!-- contact js -->
+    <script src="{% static 'assets/js/contact.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.form.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.validate.min.js' %}"></script>
+    <script src="{% static 'assets/js/mail-script.js' %}"></script>
+    <script src="{% static 'assets/js/jquery.ajaxchimp.min.js' %}"></script>
+
+    <!-- Jquery Plugins, main Jquery -->
+    <script src="{% static 'assets/js/plugins.js' %}"></script>
+    <script src="{% static 'assets/js/main.js' %}"></script>
+
+
+
+  </body>
+</html>

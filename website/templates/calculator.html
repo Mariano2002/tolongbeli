@@ -1,0 +1,393 @@
+{%  load static %}
+<!doctype html>
+<html class="no-js" lang="zxx">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <title>eCommerce HTML-5 Template </title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="manifest" href="site.webmanifest">
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico' %}">
+
+		<!-- CSS here -->
+            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+   </head>
+
+   <body>
+
+
+    <header>
+        <!-- Header Start -->
+       <div class="header-area">
+            <div class="main-header ">
+                <div class="header-top top-bg d-none d-lg-block">
+                   <div class="container-fluid">
+                       <div class="col-xl-12">
+                            <div class="row d-flex justify-content-between align-items-center">
+                                <div class="header-info-left d-flex">
+                                    <ul class="contact-now">
+                                        <li>+60 111 030 0940</li>
+                                    </ul>
+                                </div>
+                                <div class="header-info-right">
+                                   <ul>
+                                       <li><a>Kadar tukar RM 1= RP 3300 , Kadar upah 10% dari total cost</a></li>
+                                   </ul>
+                                </div>
+                            </div>
+                       </div>
+                   </div>
+                </div>
+               <div class="header-bottom  header-sticky">
+                    <div class="container-fluid">
+                        <div class="row align-items-center">
+                            <!-- Logo -->
+                            <div class="col-xl-1 col-lg-1 col-md-1 col-sm-3">
+                                <div class="logo">
+                                  <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                                </div>
+                            </div>
+                            <div class="col-xl-6 col-lg-8 col-md-7 col-sm-5">
+                                <!-- Main-menu -->
+                                <div class="main-menu f-right d-none d-lg-block">
+                                    <nav>
+                                        <ul id="navigation">
+                                            <li><a href="home">Home</a></li>
+                                            <li><a href="shop">Shop</a></li>
+                                            {% if user.is_superuser %}
+                                            <li><a href="calculator">Calculator</a>
+                                                <ul class="submenu">
+                                                    <li><a href="calculator_configuration">Configure calculator</a></li>
+                                                </ul>
+                                            </li>
+                                            {% else %}
+                                            <li><a href="calculator">Calculator</a></li>
+                                            {% endif %}
+
+                                            <li><a href="#">Pages</a>
+                                                <ul class="submenu">
+                                                    <li><a href="#">Tracking</a></li>
+                                                    <li><a href="#">Frequently asked questions</a></li>
+                                                    <li><a href="#">Terms and conditions</a></li>
+                                                    <li><a href="#">Testimonial</a></li>
+                                                    <li><a href="#">Contact</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </div>
+                            </div>
+                            <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
+                                <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
+                                    {% if user.is_authenticated %}
+                                       <li class="d-none d-lg-block"> <a href="my_orders" class="btn header-btn">My Orders</a></li>
+                                       <li class="d-none d-lg-block"> <a href="logout" class="btn header-btn">Log Out</a></li>
+                                    {% else %}
+                                       <li class="d-none d-lg-block"> <a href="login" class="btn header-btn">Sign in</a></li>
+                                       <li class="d-none d-lg-block"> <a href="signup" class="btn header-btn">Register</a></li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                            <!-- Mobile Menu -->
+                            <div class="col-12">
+                                <div class="mobile_menu d-block d-lg-none"></div>
+                            </div>
+                        </div>
+                    </div>
+               </div>
+            </div>
+       </div>
+        <!-- Header End -->
+    </header>
+
+
+    <p class="text-center" style="border-style: solid; border-color: crimson; background-color: crimson; color: black;">Sometimes the weight or the other dimensions showed on the provider's website may be incorrect which makes the calculator not 100% correct. Every order will be measured again when it arrives at the warehouse. </p>
+    <main>
+        <form action="{% url 'calculator' %}" method="POST" id="form">
+        {% csrf_token %}
+            <!-- slider Area Start-->
+            <div class="slider-area ">
+                <!-- Mobile Menu -->
+                <div class="single-slider slider-height2 d-flex align-items-center">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-xl-12">
+                                <div class="hero-cap text-center">
+                                    <h2>Calculator</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+    </div>
+            <!-- slider Area End-->
+
+            {% if item_price %}
+            <div class="row justify-content-md-center">
+                <div class="col col-lg-12">
+
+                    <br>
+                    <br>
+                        <div id="results text-center">
+                            <table class="table table-bordered text-center" style="width: 50%; margin-left: auto;margin-right: auto;">
+                              <thead class="thead-dark">
+                                <tr>
+                                  <th scope="col">Total Item Price</th>
+                                  <th scope="col">Shipping Type</th>
+                                  <th scope="col">Shipping Cost</th>
+                                  <th scope="col">Total Price</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+
+                                <tr>
+                                  <td>{{ item_price }}</td>
+                                  <td>Air Shipping</td>
+                                  <td>{{ air_price }}</td>
+                                  <td>{{ total_air_price }}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>{{ item_price }}</td>
+                                  <td>Sea Shipping</td>
+                                  <td>{{ sea_price }}</td>
+                                  <td>{{ total_sea_price }}</td>
+                                </tr>
+
+                                <tr>
+                                  <td>{{ item_price }}</td>
+                                  <td>Sea 2 Shipping</td>
+                                  <td>{{ sea2_price }}</td>
+                                  <td>{{ total_sea2_price }}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                        </div>
+
+                        <br>
+                      <div class="dimensions text-center">
+                          <a type="submit" href="{% url 'calculator' %}" class="btn-outline-primary">Calculate Again</a>
+                      </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="row justify-content-md-center">
+                <div class="col col-lg-2">
+
+                  <div class="main-price" style="float:right;">
+
+                    <label for="item_price" style="float:center;">Item Price:&nbsp;</label>
+                    <input type="number" step="0.01" name="item_price" id="item_price" style="width: 100px; float:center;" />
+                      <br>
+                    <label for="domestic" style="float:center;">Domestic:&nbsp;&nbsp;</label>
+                    <input type="number" step="0.01" name="domestic" id="domestic" style="width: 100px; float:center" />
+
+
+                  </div>
+                    <br>
+                    <br>
+                </div>
+
+                <div class="col col-lg-2">
+                  <div class="options text-center">
+
+                      <label for="country">Select Country:</label>
+                      <select name="country" id="country" >
+                          <option value="malaysia1">Malaysia 1</option>
+                          <option value="malaysia2">Malaysia 2</option>
+                          <option value="singapore">Singapore</option>
+                          <option value="brunel">Brunel</option>
+                      </select>
+                        <br>
+
+                        <br>
+                      <p>Choose one:</p>
+                        <input type="radio" id="normal" name="rate" value="normal" checked>
+                        <label for="normal">Normal Rate</label><br>
+                        <input type="radio" id="sensitive" name="rate" value="sensitive">
+                        <label for="sensitive">Sensitive Rate</label><br>
+                  </div>
+                </div>
+
+                <div class="col col-lg-2" style="float:left;">
+                  <div class="dimensions">
+
+                    <label for="length" style="float:center;">Length:</label>
+                    <input type="number" step="0.01" name="length" id="length" style="width: 100px; float:center;" />
+                    <br>
+                    <label for="width" style="float:center;">Width:&nbsp;&nbsp;</label>
+                    <input type="number" step="0.01" name="width" id="width" style="width: 100px; float:center;" />
+                    <br>
+                    <label for="height" style="float:center;">Height:&nbsp;</label>
+                    <input type="number" step="0.01" name="height" id="height" style="width: 100px; float:center;" />
+                    <br>
+                    <label for="weight" style="float:center;">Weight:</label>
+                    <input type="number" step="0.01" name="weight" id="weight" style="width: 100px; float:center;" />
+
+                  </div>
+                </div>
+            </div>
+            <br>
+          <div class="dimensions text-center">
+              <input type="submit" value="Calculate" class="btn-outline-primary">
+          </div>
+        {% endif %}
+        </form>
+
+    </main>
+
+   <footer>
+
+       <!-- Footer Start-->
+       <div class="footer-area footer-padding">
+           <div class="container">
+               <div class="row d-flex justify-content-between">
+                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6">
+                      <div class="single-footer-caption mb-50">
+                        <div class="single-footer-caption mb-30">
+                             <!-- logo -->
+                            <div class="footer-logo">
+                                <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                            </div>
+                            <div class="footer-tittle">
+                                <div class="footer-pera">
+                                    <p>Tolong Beli </p>
+                               </div>
+                            </div>
+                        </div>
+                      </div>
+                   </div>
+                   <div class="col-xl-2 col-lg-3 col-md-3 col-sm-5">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Quick Links</h4>
+                               <ul>
+                                   <li><a href="home">Home</a></li>
+                                    {% if user.is_authenticated %}
+                                        <li><a href="my_orders">My Orders</a></li>
+                                        <li><a href="logout">Log Out</a></li>
+                                    {% else %}
+                                        <li><a href="login">Sign In</a></li>
+                                        <li><a href="signup">Register</a></li>
+                                    {% endif %}
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="col-xl-3 col-lg-3 col-md-4 col-sm-7">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Shopping</h4>
+                               <ul>
+                                   <li><a href="shop">Shop</a></li>
+                                   <li><a href="calculator">Calculator</a></li>
+                                   <li><a href="#">Tracking</a></li>
+                               </ul>
+                           </div>
+                       </div>
+                   </div>
+                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-7">
+                       <div class="single-footer-caption mb-50">
+                           <div class="footer-tittle">
+                               <h4>Support</h4>
+                               <ul>
+                                <li><a href="#">Frequently Asked Questions</a></li>
+                                <li><a href="#">Terms & Conditions</a></li>
+                                <li><a href="#">Testimonials</a></li>
+                                <li><a href="#">Contact</a></li>
+                            </ul>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+               <!-- Footer bottom -->
+               <div class="row">
+                <div class="col-xl-7 col-lg-7 col-md-7">
+                    <div class="footer-copy-right">
+                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This website is made by <a href="https://www.fiverr.com/mariano_b" target="_blank">Mariano Baçi</a>
+  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>                   </div>
+                </div>
+                 <div class="col-xl-5 col-lg-5 col-md-5">
+                    <div class="footer-copy-right f-right">
+                        <!-- social -->
+                        <div class="footer-social">
+                            <a href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+           </div>
+       </div>
+       <!-- Footer End-->
+
+   </footer>
+
+	<!-- JS here -->
+
+
+		<!-- All JS Custom Plugins Link Here here -->
+        <script src="{% static 'assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
+		<!-- Jquery, Popper, Bootstrap -->
+		<script src="{% static 'assets/js/vendor/jquery-1.12.4.min.js' %}"></script>
+        <script src="{% static 'assets/js/popper.min.js' %}"></script>
+        <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+	    <!-- Jquery Mobile Menu -->
+        <script src="{% static 'assets/js/jquery.slicknav.min.js' %}"></script>
+
+		<!-- Jquery Slick , Owl-Carousel Plugins -->
+        <script src="{% static 'assets/js/owl.carousel.min.js' %}"></script>
+        <script src="{% static 'assets/js/slick.min.js' %}"></script>
+
+		<!-- One Page, Animated-HeadLin -->
+        <script src="{% static 'assets/js/wow.min.js' %}"></script>
+		<script src="{% static 'assets/js/animated.headline.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.magnific-popup.js' %}"></script>
+
+		<!-- Scrollup, nice-select, sticky -->
+        <script src="{% static 'assets/js/jquery.scrollUp.min.js' %}"></script>
+		<script src="{% static 'assets/js/jquery.sticky.js' %}"></script>
+
+        <!-- contact js -->
+        <script src="{% static 'assets/js/contact.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.form.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.validate.min.js' %}"></script>
+        <script src="{% static 'assets/js/mail-script.js' %}"></script>
+        <script src="{% static 'assets/js/jquery.ajaxchimp.min.js' %}"></script>
+
+		<!-- Jquery Plugins, main Jquery -->
+        <script src="{% static 'assets/js/plugins.js' %}"></script>
+        <script src="{% static 'assets/js/main.js' %}"></script>
+        <script>
+            function isNumeric(value) {
+                return /^-?\d+$/.test(value);
+            }
+            $("#form").submit(function(e) {
+                price = document.getElementById("item_price").value;
+                domestic = document.getElementById("domestic").value;
+                length = document.getElementById("length").value;
+                width = document.getElementById("width").value;
+                height = document.getElementById("height").value;
+                weight = document.getElementById("weight").value;
+                if(price == ""){
+                    e.preventDefault();
+                    }
+                if(length == "" || width == "" || height == "" || weight == ""){
+                    e.preventDefault();
+                    }
+            });
+        </script>
+    </body>
+</html>
