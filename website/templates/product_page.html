@@ -61,7 +61,7 @@
                             <!-- Logo -->
                             <div class="col-xl-1 col-lg-1 col-md-1 col-sm-3">
                                 <div class="logo">
-                                  <a href="home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
+                                  <a href="/home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
                                 </div>
                             </div>
                             <div class="col-xl-6 col-lg-8 col-md-7 col-sm-5">
@@ -69,16 +69,16 @@
                                 <div class="main-menu f-right d-none d-lg-block">
                                     <nav>
                                         <ul id="navigation">
-                                            <li><a href="home">Home</a></li>
-                                            <li><a href="shop">Shop</a></li>
+                                            <li><a href="/home">Home</a></li>
+                                            <li><a href="/shop">Shop</a></li>
                                             {% if user.is_superuser %}
-                                            <li><a href="calculator">Calculator</a>
+                                            <li><a href="/calculator">Calculator</a>
                                                 <ul class="submenu">
-                                                    <li><a href="calculator_configuration">Configure calculator</a></li>
+                                                    <li><a href="/calculator_configuration">Configure calculator</a></li>
                                                 </ul>
                                             </li>
                                             {% else %}
-                                            <li><a href="calculator">Calculator</a></li>
+                                            <li><a href="/calculator">Calculator</a></li>
                                             {% endif %}
 
                                             <li><a href="#">Pages</a>
@@ -97,11 +97,11 @@
                             <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
                                 <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
                                     {% if user.is_authenticated %}
-                                       <li class="d-none d-lg-block"> <a href="my_orders" class="btn header-btn">My Orders</a></li>
-                                       <li class="d-none d-lg-block"> <a href="logout" class="btn header-btn">Log Out</a></li>
+                                       <li class="d-none d-lg-block"> <a href="/my_orders" class="btn header-btn">My Orders</a></li>
+                                       <li class="d-none d-lg-block"> <a href="/logout" class="btn header-btn">Log Out</a></li>
                                     {% else %}
-                                       <li class="d-none d-lg-block"> <a href="login" class="btn header-btn">Sign in</a></li>
-                                       <li class="d-none d-lg-block"> <a href="signup" class="btn header-btn">Register</a></li>
+                                       <li class="d-none d-lg-block"> <a href="/login" class="btn header-btn">Sign in</a></li>
+                                       <li class="d-none d-lg-block"> <a href="/signup" class="btn header-btn">Register</a></li>
                                     {% endif %}
                                 </ul>
                             </div>
@@ -167,9 +167,9 @@
                   <select name="variants" id="variants" onchange="javascript:change_price(this)" onload="javascript:change_price(this)">
                       {% for model in models %}
                           {% if model.name == "" %}
-                            <option class="variants" value="Default" id="Default">Default</option>
+                            <option class="variants" value="Default" id="Default">Default | {{ models.0.stock }}</option>
                           {% else %}
-                            <option class="variants" value="{{ model.name }}" id="{{ model.name }}">{{ model.name }}</option>
+                            <option class="variants" value="{{ model.name }}" id="{{ model.name }}">{{ model.name }} | {{ model.stock }}</option>
                           {% endif %}
                       {% endfor %}
                   </select>
@@ -220,9 +220,7 @@
             <span id="price" class="price" style="font-weight: 300;font-size: 25px;color: #43484D;">Rp{{ models.0.price }}</span>
         </div>
 
-        <div class="product-price">
-            <span id="stock" class="stock" style="font-weight: 300;font-size: 25px;color: #43484D;">Stock: {{ models.0.stock }}</span>
-        </div>
+
 
         <div class="product-price">
             <span id="shipping_price" class="price" style="font-weight: 300;font-size: 25px;color: #43484D;">Shipping: Rp{{ shipping }}</span>
@@ -249,10 +247,7 @@
         function change_stock(element) {
             var id_button = document.getElementById("variants").options[document.getElementById("variants").selectedIndex].id;
             {% for model in models %}
-                if('{{ model.name }}' == id_button){
-                    console.log("same")
-                    console.log("{{ model.stock }}")
-                    console.log(document.getElementById("quantity").value)
+                if('{{ model.name }}' == id_button || id_button == "Default"){
                     if (document.getElementById("quantity").value > {{ model.stock }}) {
                         document.getElementById("quantity").value = {{ model.stock }};
                         }
@@ -272,7 +267,6 @@
                 if('{{ model.name }}' == id_button){
                     console.log("{{ model.price }}")
                     document.getElementById("price").innerText = "Rp{{ model.price }}";
-                    document.getElementById("stock").innerText = "Stock: {{ model.stock }}";
                     document.getElementById("quantity").value = "1";
                     document.getElementById("quantity").max = {{ model.stock }};
                 }

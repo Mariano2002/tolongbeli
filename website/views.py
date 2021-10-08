@@ -44,8 +44,9 @@ def shop(request):
             return HttpResponseRedirect('shopee/%s/' % title.split("shopee.co.id/")[1])
 
 
-
+        print(title)
         keyword = urllib.parse.quote(title)
+        print(keyword)
         headers = {
             'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36",
             # 'cookie': cookie,
@@ -87,7 +88,7 @@ def shop(request):
             'accept-language': 'en-US,en;q=0.9',
         }
         params = (('by', 'relevancy'),
-            ('keyword', f'{keyword}'),
+            ('keyword', f'{title}'),
             ('limit', '60'),
             ('newest', '0'),
             ('order', 'desc'),
@@ -705,8 +706,30 @@ def buy_shopee(request, item_id, variant, quantity, rate, country):
 
 
     bill_desc = items[0].name + " " + variant
-    bill_code = json.loads(req.text)[0]['BillCode']
+    data = {
+    'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+    'categoryCode' : '6elrtbk8',
+    'billName' : 'Purchase from Tolongbeli',
+    'billDescription' : bill_desc[:99],
+    'billPriceSetting' : 1,
+    'billPayorInfo' : 0,
+    'billAmount' : round((int(price*quantity + items[0].shipping)/3300)*100, 2),
+    'billReturnUrl' : 'http://127.0.0.1:8000/',
+    'billCallbackUrl' : 'http://127.0.0.1:8000/',
+    'billExternalReferenceNo' : "MY"+str_id,
+    'billTo' : request.user.username,
+    'billEmail' : request.user.email,
+    'billPhone' : "",
+    'billSplitPayment' : 0,
+    'billSplitPaymentArgs' : '',
+    'billPaymentChannel' : '0',
+    'billContentEmail' : 'Thank you for purchasing our product!',
+    'billChargeToCustomer' : 2,
+    }
+    req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
 
+    bill_code = json.loads(req.text)[0]['BillCode']
+    print(country)
     product_buy = sold.objects.create(
         id_product = items[0].id,
         name = items[0].name,
