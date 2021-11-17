@@ -42,12 +42,20 @@ urlpatterns = [
     path('shopee/<path:item_description>', product_page_shopee, name="product_page_shopee"),
     path('tokopedia/<path:item_description>', product_page_tokopedia, name="product_page_tokopedia"),
 
-    path('buy_shopee/<path:item_id>/<path:variant>/<int:quantity>/<str:rate>/<str:country>', buy_shopee, name="buy_shopee"),
-    path('buy_tokopedia/<path:item_id>/<path:variant>/<int:quantity>/<str:rate>/<str:country>', buy_tokopedia, name="buy_tokopedia"),
+    path('addCart_shopee/<path:item_id>/<path:variant>/<int:quantity>', addCart_shopee, name="addCart_shopee"),
+    path('addCart_tokopedia/<path:item_id>/<path:variant>/<int:quantity>', addCart_tokopedia, name="addCart_tokopedia"),
 
-    path('pay_shipping/<int:item_id>/<str:shipping_type>/', pay_shipping, name="pay_shipping"),
+    path('removeCart/<path:item_id>', removeCart, name="removeCart"),
 
-    path('change_bill/<int:item_id>/', change_bill, name="change_bill"),
+    path('buy', buy, name="buy"),
+
+    path('calculate_shipping_price', calculate_shipping_price, name="calculate_shipping_price"),
+
+    path('recharge', recharge, name="recharge"),
+
+    path('pay_shipping', pay_shipping, name="pay_shipping"),
+
+    path('change_bill/', change_bill, name="change_bill"),
 
     path('reset_password', auth_views.PasswordResetView.as_view(template_name="reset_password.html"), name="reset_password"),
     path('reset_password_sent', auth_views.PasswordResetDoneView.as_view(template_name="link_sent.html"), name="password_reset_done"),

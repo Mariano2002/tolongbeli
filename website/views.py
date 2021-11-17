@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import render, redirect, get_object_or_404, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 import requests
 import urllib.parse
 import json
@@ -15,16 +16,25 @@ import re
 from slugify import slugify
 import itertools
 import math
+from allauth.account.signals import user_signed_up
+from django.dispatch import receiver
+from django.conf import settings
+from .forms import *
+
+def check_wallet(email):
+    try:
+        wallet_user = wallet.objects.all().filter(client_email=email)[0]
+    except:
+        wallet_user = wallet.objects.create(client_email=email)
+        wallet_user.save()
 
 
 def user_is_not_logged_in(user):
     return not user.is_authenticated
 
 
-
 def home(request):
     return render(request, 'index.html', {})
-
 
 
 @csrf_exempt
@@ -33,15 +43,42 @@ def shop(request):
         title = request.POST.get("Search")
 
         regex = re.compile(
-            r'^(?:http|ftp)s?://'  # http:// or https://
-            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
-            r'localhost|'  # localhost...
-            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
-            r'(?::\d+)?'  # optional port
+            r'^(?:http|ftp)s?://' 
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  
+            r'localhost|'
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+            r'(?::\d+)?' 
             r'(?:/?|[/?]\S+)$', re.IGNORECASE)
 
         if re.match(regex, title) is not None:
-            return HttpResponseRedirect('shopee/%s/' % title.split("shopee.co.id/")[1])
+            if "shopee" in title:
+                try:
+                    return HttpResponseRedirect('shopee/%s/' % title.split("?")[0].split("shopee.co.id/")[1])
+                except:
+                    r = requests.get(title)
+                    return HttpResponseRedirect('shopee/%s/' % r.url.split("?")[0].split("shopee.co.id/")[1])
+            elif "tokopedia" in title:
+                try:
+                    return HttpResponseRedirect('tokopedia/%s/' % title.split("?")[0].split("tokopedia.com/")[1])
+                except:
+                    print("i")
+                    headers = {
+                        'Connection': 'keep-alive',
+                        'sec-ch-ua': '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
+                        'sec-ch-ua-mobile': '?0',
+                        'sec-ch-ua-platform': '"Windows"',
+                        'Upgrade-Insecure-Requests': '1',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+                        'Sec-Fetch-Site': 'none',
+                        'Sec-Fetch-Mode': 'navigate',
+                        'Sec-Fetch-User': '?1',
+                        'Sec-Fetch-Dest': 'document',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                    }
+
+                    response = requests.get(title, headers=headers)
+                    return HttpResponseRedirect('tokopedia/%s/' % response.url.split("?")[0].split("tokopedia.com/")[1])
 
 
         print(title)
@@ -127,7 +164,6 @@ def shop(request):
         return render(request, 'shop.html', {})
 
 
-
 @user_passes_test(user_is_not_logged_in, login_url=home)
 def login_page(request):
     if request.method == 'POST':
@@ -136,13 +172,13 @@ def login_page(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            check_wallet(request.user.email)
             return redirect(home)
         else:
             messages.info(request, 'Username or password in incorrect')
             return render(request, 'login.html', {})
     else:
         return render(request, 'login.html', {})
-
 
 
 @user_passes_test(user_is_not_logged_in, login_url=home)
@@ -160,11 +196,9 @@ def signup(request):
     return render(request, 'registration.html', context)
 
 
-
 def logout_page(request):
     logout(request)
     return redirect(login_page)
-
 
 
 def product_page_shopee(request, item_description):
@@ -302,7 +336,7 @@ def product_page_shopee(request, item_description):
 
 
 def product_page_tokopedia(request, item_description):
-
+    print("ketuuu")
     def convert_price(price1):
         price_1 = price1[::-1]
         price_2 = ''
@@ -375,7 +409,8 @@ def product_page_tokopedia(request, item_description):
 
     while True:
         try:
-            res = requests.post('https://gql.tokopedia.com/', headers=headers, json=payload, timeout=5, proxies={'proxy': proxy})
+            proxies = {'https': 'https://'+proxy}
+            res = requests.post('https://gql.tokopedia.com/', headers=headers, json=payload, timeout=5, proxies=proxies)
             break
         except:
             pass
@@ -649,48 +684,106 @@ def product_page_tokopedia(request, item_description):
     return render(request, 'product_page.html', context_product_tokopedia)
 
 
-
 @login_required(login_url=login_page)
 def my_orders(request):
+    if request.method == 'POST':
+        form = refundForm(request.POST)
+        if form.is_valid():
+            print("valid")
+            form.save()
+            return redirect(my_orders)
+        else:
+            print("not valid")
+    else:
 
-    def convert_price(price1):
-        price_1 = price1[::-1]
-        price_2 = ''
-        while price_1:
-            price_2 += price_1[:3]
-            if len(price_1) > 3:
-                price_2 += '.'
-            price_1 = price_1[3:]
-        return price_2[::-1]
-    context = {}
-    context['orders'] = {}
-    items = sold.objects.all().filter(client_email=request.user.email)
-    for item in items:
-        context['orders'][item.id] = {
-            "id":item.id,
-            "name":item.name,
-            "variant":item.variant,
-            "price": convert_price(str(int(item.price))),
-            "rmprice": item.rmprice,
-            "url":item.url,
-            "quantity":item.quantity,
-            "order_status": item.order_status,
-            "bill_code": item.bill_code,
-            "bill_new": item.bill_new,
-            "shipping_rate": item.shipping_rate,
-            "shipping_country": item.shipping_country,
-            "air_price": item.air_price,
-            "sea_1_price": item.sea_1_price,
-            "sea_2_price": item.sea_2_price,
-            "shipping_status": item.shipping_status,
-        }
+        def convert_price(price1):
+            price_1 = price1[::-1]
+            price_2 = ''
+            while price_1:
+                price_2 += price_1[:3]
+                if len(price_1) > 3:
+                    price_2 += '.'
+                price_1 = price_1[3:]
+            return price_2[::-1]
+        context = {}
+        context['orders'] = {}
+        items_ship = shipping.objects.all().filter(client_email=request.user.email)
+        statuses = {}
+        for i in items_ship:
+            ids = json.loads(i.sold_ids)
+            for id in ids:
+                statuses[id] = i.shipping_status
+        items = sold.objects.all().filter(client_email=request.user.email)
+        for item in items:
+            try:
+                shipping_status = statuses[str(item.id)]
+            except:
+                shipping_status = "NOT PAID"
+            if item.order_status == "CANCELLED":
+                can_ship = "False"
+            elif item.height == 0.0 and item.length == 0.0 and item.width == 0.0 and item.width == 0.0:
+                can_ship = "False"
+            else:
+                if shipping_status == "NOT PAID":
+                    can_ship = "True"
+                else:
+                    can_ship = "False"
+            print(shipping_status)
+            context['orders'][item.id] = {
+                "id":item.id,
+                "name":item.name,
+                "variant":item.variant,
+                "price": convert_price(str(int(item.price))),
+                "rmprice": item.rmprice,
+                "url":item.url,
+                "quantity":item.quantity,
+                "shipping_status": shipping_status,
+                "order_status": item.order_status,
+                "extra_info": item.extra_info,
+                "can_ship": can_ship,
 
-    return render(request, 'my_orders.html', context)
+            }
 
+        context['cart'] = {}
+        items = cart.objects.all().filter(client_email=request.user.email)
+        for item in items:
+            context['cart'][item.id] = {
+                "id": item.id,
+                "name": item.name,
+                "variant": item.variant,
+                "price": convert_price(str(int(item.price))),
+                "rmprice": item.rmprice,
+                "url": item.url,
+                "quantity": item.quantity,
+            }
+        print(context['cart'])
+
+
+        context['new_bills'] = {}
+        items = new_bills.objects.all().filter(client_email=request.user.email, bill_status="NOT PAID")
+        for item in items:
+            context['new_bills'][item.id] = {
+                "email": item.client_email,
+                "bill_code": item.bill_code,
+                "description": item.description,
+                "price": item.price,
+            }
+
+        item = wallet.objects.all().filter(client_email=request.user.email)[0]
+        context['balance'] = item.balance
+
+
+        hist = history.objects.all().filter(client_email=request.user.email)
+        context['history'] = hist
+
+        refund_form = refundForm()
+        refund_form.fields["client_email"].initial = request.user.email
+        context['refund_form'] = refund_form
+        return render(request, 'my_orders.html', context)
 
 
 @login_required(login_url=login_page)
-def buy_shopee(request, item_id, variant, quantity, rate, country):
+def addCart_shopee(request, item_id, variant, quantity):
     items = product_view.objects.all().filter(id=item_id)
     price = ""
     for i in json.loads(items[0].models):
@@ -705,32 +798,32 @@ def buy_shopee(request, item_id, variant, quantity, rate, country):
         str_id = "0"+str_id
 
 
-    bill_desc = items[0].name + " " + variant
-    data = {
-    'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-    'categoryCode' : '6elrtbk8',
-    'billName' : 'Purchase from Tolongbeli',
-    'billDescription' : bill_desc[:99],
-    'billPriceSetting' : 1,
-    'billPayorInfo' : 0,
-    'billAmount' : round((int(price*quantity + items[0].shipping)/3300)*100, 2),
-    'billReturnUrl' : 'http://127.0.0.1:8000/',
-    'billCallbackUrl' : 'http://127.0.0.1:8000/',
-    'billExternalReferenceNo' : "MY"+str_id,
-    'billTo' : request.user.username,
-    'billEmail' : request.user.email,
-    'billPhone' : "",
-    'billSplitPayment' : 0,
-    'billSplitPaymentArgs' : '',
-    'billPaymentChannel' : '0',
-    'billContentEmail' : 'Thank you for purchasing our product!',
-    'billChargeToCustomer' : 2,
-    }
-    req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-
-    bill_code = json.loads(req.text)[0]['BillCode']
-    print(country)
-    product_buy = sold.objects.create(
+    # bill_desc = items[0].name + " " + variant
+    # data = {
+    # 'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+    # 'categoryCode' : '6elrtbk8',
+    # 'billName' : 'Purchase from Tolongbeli',
+    # 'billDescription' : bill_desc[:99],
+    # 'billPriceSetting' : 1,
+    # 'billPayorInfo' : 0,
+    # 'billAmount' : round((int(price*quantity + items[0].shipping)/3300)*100, 2),
+    # 'billReturnUrl' : 'http://127.0.0.1:8000/',
+    # 'billCallbackUrl' : 'http://127.0.0.1:8000/',
+    # 'billExternalReferenceNo' : "MY"+str_id,
+    # 'billTo' : request.user.username,
+    # 'billEmail' : request.user.email,
+    # 'billPhone' : "",
+    # 'billSplitPayment' : 0,
+    # 'billSplitPaymentArgs' : '',
+    # 'billPaymentChannel' : '0',
+    # 'billContentEmail' : 'Thank you for purchasing our product!',
+    # 'billChargeToCustomer' : 2,
+    # }
+    # req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+    #
+    # bill_code = json.loads(req.text)[0]['BillCode']
+    # print(country)
+    product_buy = cart.objects.create(
         id_product = items[0].id,
         name = items[0].name,
         price = int(price*quantity + items[0].shipping),
@@ -739,19 +832,17 @@ def buy_shopee(request, item_id, variant, quantity, rate, country):
         url = "/shopee/"+items[0].url,
         client_email=request.user.email,
         client_id="MY"+str_id,
-        bill_code=bill_code,
         quantity=quantity,
-        shipping_rate=rate,
-        shipping_country=country,
     )
 
     product_buy.save()
-    return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
+    # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
+    return HttpResponseRedirect("/shopee/"+items[0].url)
 
 
 @login_required(login_url=login_page)
-def buy_tokopedia(request, item_id, variant, quantity, rate, country):
+def addCart_tokopedia(request, item_id, variant, quantity, rate, country):
 
 
     items = product_view.objects.all().filter(id=item_id)
@@ -767,33 +858,8 @@ def buy_tokopedia(request, item_id, variant, quantity, rate, country):
     while len(str_id) < 6:
         str_id = "0"+str_id
 
-    bill_desc = items[0].name + " " + variant
-    data = {
-    'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-    'categoryCode' : '6elrtbk8',
-    'billName' : 'Purchase from Tolongbeli',
-    'billDescription' : bill_desc[:99],
-    'billPriceSetting' : 1,
-    'billPayorInfo' : 0,
-    'billAmount' : round((int(price*quantity + items[0].shipping)/3300)*100, 2),
-    'billReturnUrl' : 'http://127.0.0.1:8000/',
-    'billCallbackUrl' : 'http://127.0.0.1:8000/',
-    'billExternalReferenceNo' : "MY"+str_id,
-    'billTo' : request.user.username,
-    'billEmail' : request.user.email,
-    'billPhone' : "",
-    'billSplitPayment' : 0,
-    'billSplitPaymentArgs' : '',
-    'billPaymentChannel' : '0',
-    'billContentEmail' : 'Thank you for purchasing our product!',
-    'billChargeToCustomer' : 2,
-    }
-    req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
 
-
-    bill_code = json.loads(req.text)[0]['BillCode']
-
-    product_buy = sold.objects.create(
+    product_buy = cart.objects.create(
         id_product = items[0].id,
         name = items[0].name,
         price = int(price*quantity + items[0].shipping),
@@ -802,16 +868,162 @@ def buy_tokopedia(request, item_id, variant, quantity, rate, country):
         url = "/tokopedia/"+items[0].url,
         client_email=request.user.email,
         client_id="MY"+str_id,
-        bill_code=bill_code,
         quantity=quantity,
         shipping_rate=rate,
         shipping_country=country,
     )
 
     product_buy.save()
-    return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
+    # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
+
+    return HttpResponseRedirect("/tokopedia/"+items[0].url)
 
 
+@csrf_exempt
+def buy(request):
+
+    if request.method == "POST":
+        dict = json.loads(request.POST.get("Products"))
+        print(dict)
+        price = 0
+        ids = []
+        for id in dict:
+            product = cart.objects.all().filter(client_email=request.user.email, id=id)[0]
+            product.extra_info = dict[id]
+            product.save()
+
+            item = cart.objects.all().filter(client_email=request.user.email, id=id)[0]
+            price += item.rmprice
+            ids.append(id)
+
+        str_id = str(request.user.id)
+        while len(str_id) < 6:
+            str_id = "0" + str_id
+
+        print(ids)
+        print(price)
+
+        item = wallet.objects.all().filter(client_email=request.user.email)[0]
+        balance = item.balance
+
+        if balance >= price:
+            print("done")
+            item.balance = round(balance - price, 2)
+            item.save()
+            for id in ids:
+                bill = order_bills.objects.create(
+                    cart_id=id,
+                    bill_code="balance",
+                    client_email=request.user.email,
+                    client_id=str_id,
+                )
+
+                bill.save()
+            return JsonResponse(status=302, data={'success': f"/my_orders"})
+        elif balance != 0:
+
+            new_price = round(price - balance, 2)
+
+            data = {
+            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+            'categoryCode' : '6elrtbk8',
+            'billName' : 'Purchase from Tolongbeli',
+            'billDescription' : "Paying for your product(s)",
+            'billPriceSetting' : 1,
+            'billPayorInfo' : 0,
+            'billAmount' : new_price*100,
+            'billReturnUrl' : 'http://127.0.0.1:8000/',
+            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billExternalReferenceNo' : "MY"+str_id,
+            'billTo' : request.user.username,
+            'billEmail' : request.user.email,
+            'billPhone' : "",
+            'billSplitPayment' : 0,
+            'billSplitPaymentArgs' : '',
+            'billPaymentChannel' : '0',
+            'billContentEmail' : 'Thank you for purchasing our product(s)!',
+            'billChargeToCustomer' : 2,
+            }
+            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+            print(req.text)
+            bill_code = json.loads(req.text)[0]['BillCode']
+
+            for id in ids:
+
+                bill = order_bills.objects.create(
+                    cart_id = id,
+                    bill_code = bill_code,
+                    client_email=request.user.email,
+                    client_id=str_id,
+                    notes=f"Total was {price} - {balance} paid from balance;"
+                )
+
+                bill.save()
+
+                item.balance = 0
+                item.save()
+
+            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+
+
+        else:
+
+            data = {
+            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+            'categoryCode' : '6elrtbk8',
+            'billName' : 'Purchase from Tolongbeli',
+            'billDescription' : "Paying for your product(s)",
+            'billPriceSetting' : 1,
+            'billPayorInfo' : 0,
+            'billAmount' : price*100,
+            'billReturnUrl' : 'http://127.0.0.1:8000/',
+            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billExternalReferenceNo' : "MY"+str_id,
+            'billTo' : request.user.username,
+            'billEmail' : request.user.email,
+            'billPhone' : "",
+            'billSplitPayment' : 0,
+            'billSplitPaymentArgs' : '',
+            'billPaymentChannel' : '0',
+            'billContentEmail' : 'Thank you for purchasing our product(s)!',
+            'billChargeToCustomer' : 2,
+            }
+            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+            print(req.text)
+            bill_code = json.loads(req.text)[0]['BillCode']
+
+            for id in ids:
+
+                bill = order_bills.objects.create(
+                    cart_id = id,
+                    bill_code = bill_code,
+                    client_email=request.user.email,
+                    client_id=str_id,
+                )
+
+                bill.save()
+            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+
+
+    # product_buy = sold.objects.create(
+    #     id_product = items[0].id,
+    #     name = items[0].name,
+    #     price = int(price*quantity + items[0].shipping),
+    #     rmprice= round(int(price*quantity + items[0].shipping)/3300, 2),
+    #     variant = variant,
+    #     url = "/shopee/"+items[0].url,
+    #     client_email=request.user.email,
+    #     client_id="MY"+str_id,
+    #     quantity=quantity,
+    #     shipping_rate=rate,
+    #     shipping_country=country,
+    # )
+
+
+def removeCart(request, item_id):
+    print(item_id)
+    cart.objects.get(id=item_id).delete()
+    return redirect(my_orders)
 
 
 def calculator(request):
@@ -966,10 +1178,10 @@ def calculator(request):
 
         return render(request, 'calculator.html', {})
 
-from django.conf import settings
 
 def check_admin(user):
    return user.is_superuser
+
 
 @user_passes_test(check_admin)
 def calculator_config(request):
@@ -1025,26 +1237,29 @@ def calculator_config(request):
 
 
 @user_passes_test(check_admin)
-def change_bill(request, item_id):
+def change_bill(request):
     if request.method == "POST":
         new_price = request.POST.get("price")
+        email = request.POST.get("email")
+        description = request.POST.get("description")
 
-        item = sold.objects.filter(id=item_id)[0]
+        str_id = str(request.user.id)
+        while len(str_id) < 6:
+            str_id = "0" + str_id
 
-        bill_desc = item.name + " " + item.variant
         data = {
             'userSecretKey': 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
             'categoryCode': '6elrtbk8',
-            'billName': 'Purchase from Tolongbeli',
-            'billDescription': bill_desc[:90],
+            'billName': 'Extra bill from Tolongbeli',
+            'billDescription': description,
             'billPriceSetting': 1,
             'billPayorInfo': 0,
             'billAmount': float(new_price)*100,
             'billReturnUrl': 'http://127.0.0.1:8000/',
             'billCallbackUrl': 'http://127.0.0.1:8000/',
-            'billExternalReferenceNo': "MY" + item.client_id,
-            'billTo': item.client_email,
-            'billEmail': item.client_email,
+            'billExternalReferenceNo': "MY" + str_id,
+            'billTo': email,
+            'billEmail': email,
             'billPhone': "",
             'billSplitPayment': 0,
             'billSplitPaymentArgs': '',
@@ -1055,79 +1270,422 @@ def change_bill(request, item_id):
         req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
 
         bill_code = json.loads(req.text)[0]['BillCode']
-        item.bill_code = bill_code
-        item.bill_new = True
-        item.order_status = "NOT PAID"
-        item.rmprice = float(new_price)
-        item.price = float(new_price)*3300
-        item.save()
+        bill = new_bills.objects.create(
+            bill_code=bill_code,
+            description=description,
+            client_email=request.user.email,
+            price=new_price,
+        )
+
+        bill.save()
         return redirect(home)
     else:
         return render(request, 'change_bill.html', {})
 
 
+@csrf_exempt
+@login_required(login_url=login_page)
+def pay_shipping(request):
+
+    if request.method == "POST":
+        dict = json.loads(request.POST.get("Products"))
+        ids = dict['ids']
+        prices = dict['prices']
+        shippingi = dict['shipping']
+        rate = dict['rate']
+        country = dict['country']
+        address = dict['address']
+        phone = dict['phone']
+        postcode = dict['postcode']
+        print(shippingi)
+
+        if shippingi == "air":
+            price = prices['air']
+            shipping_choose = "Air"
+        if shippingi == "sea1":
+            price = prices['sea1']
+            shipping_choose = "Sea 1"
+        if shippingi == "sea2":
+            price = prices['sea2']
+            shipping_choose = "Sea 2"
+
+        for id in ids:
+            item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+            if shippingi == "air":
+                if item.allow_air == False:
+                    return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping}"})
+            if shippingi == "sea1":
+                if item.allow_sea_1 == False:
+                    return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping}"})
+            if shippingi == "sea2":
+                if item.allow_sea_2 == False:
+                    return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping}"})
+
+
+        str_id = str(request.user.id)
+        while len(str_id) < 6:
+            str_id = "0"+str_id
+
+        item = wallet.objects.all().filter(client_email=request.user.email)[0]
+        balance = item.balance
+
+        if balance >= price:
+            print("done")
+            item.balance = round(balance - price, 2)
+            item.save()
+
+            bill = shipping_bills.objects.create(
+                product_ids=json.dumps(ids),
+                bill_code="balance",
+                client_email=request.user.email,
+                client_id=str_id,
+                notes=f"Total was {price} - {price} paid from balance;"
+            )
+            bill.save()
+
+
+
+            shipping_product = shipping.objects.create(
+                sold_ids = json.dumps(ids),
+                shipping_price = price,
+                client_email=request.user.email,
+                client_id=str_id,
+                shipping_choose = shipping_choose,
+                shipping_rate= rate,
+                shipping_country= country,
+                address= address,
+                phone= phone,
+                postcode= postcode,
+            )
+            shipping_product.save()
+
+            # item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+            # item.shipping_price = data1[id]
+            # if shipping == "air":
+            #     item.shipping_choose = "Air"
+            # if shipping == "sea1":
+            #     item.shipping_choose = "Sea 1"
+            # if shipping == "sea2":
+            #     item.shipping_choose = "Sea 2"
+            # item.shipping_rate = rate
+            # item.shipping_country = country
+            # item.save()
+            return JsonResponse(status = 302 , data = {'success' : f"/my_orders" })
+        elif balance != 0:
+            new_price = round(price - balance, 2)
+            data = {
+            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+            'categoryCode' : '6elrtbk8',
+            'billName' : 'Purchase from Tolongbeli',
+            'billDescription' : "Shipping fee for product(s) "+ ", ".join(ids),
+            'billPriceSetting' : 1,
+            'billPayorInfo' : 0,
+            'billAmount' : new_price*100,
+            'billReturnUrl' : 'http://127.0.0.1:8000/',
+            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billExternalReferenceNo' : "MY"+str_id,
+            'billTo' : request.user.username,
+            'billEmail' : request.user.email,
+            'billPhone' : "",
+            'billSplitPayment' : 0,
+            'billSplitPaymentArgs' : '',
+            'billPaymentChannel' : '0',
+            'billContentEmail' : 'Thank you for purchasing our product!',
+            'billChargeToCustomer' : 2,
+            }
+            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+
+            bill_code = json.loads(req.text)[0]['BillCode']
+
+
+
+
+            bill = shipping_bills.objects.create(
+                product_ids = json.dumps(ids),
+                bill_code = bill_code,
+                client_email=request.user.email,
+                client_id=str_id,
+                notes=f"Total was {price} - {balance} paid from balance;"
+            )
+            bill.save()
+
+            item.balance = 0
+            item.save()
+
+
+            shipping_product = shipping.objects.create(
+                sold_ids = json.dumps(ids),
+                shipping_price = price,
+                client_email=request.user.email,
+                client_id=str_id,
+                shipping_choose = shipping_choose,
+                shipping_rate= rate,
+                shipping_country= country,
+                address= address,
+                phone= phone,
+                postcode= postcode,
+            )
+            shipping_product.save()
+
+                # item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+                # item.shipping_price = data1[id]
+                # if shipping == "air":
+                #     item.shipping_choose = "Air"
+                # if shipping == "sea1":
+                #     item.shipping_choose = "Sea 1"
+                # if shipping == "sea2":
+                #     item.shipping_choose = "Sea 2"
+                # item.shipping_rate = rate
+                # item.shipping_country = country
+                # item.save()
+            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+
+
+        else:
+            data = {
+            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+            'categoryCode' : '6elrtbk8',
+            'billName' : 'Purchase from Tolongbeli',
+            'billDescription' : "Shipping fee for product(s) "+ ", ".join(ids),
+            'billPriceSetting' : 1,
+            'billPayorInfo' : 0,
+            'billAmount' : price*100,
+            'billReturnUrl' : 'http://127.0.0.1:8000/',
+            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billExternalReferenceNo' : "MY"+str_id,
+            'billTo' : request.user.username,
+            'billEmail' : request.user.email,
+            'billPhone' : "",
+            'billSplitPayment' : 0,
+            'billSplitPaymentArgs' : '',
+            'billPaymentChannel' : '0',
+            'billContentEmail' : 'Thank you for purchasing our product!',
+            'billChargeToCustomer' : 2,
+            }
+            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+
+            bill_code = json.loads(req.text)[0]['BillCode']
+
+
+
+            bill = shipping_bills.objects.create(
+                product_ids = json.dumps(ids),
+                bill_code = bill_code,
+                client_email=request.user.email,
+                client_id=str_id,
+                notes=f"Total was {price} - 0 paid from balance;"
+            )
+            bill.save()
+
+
+            shipping_product = shipping.objects.create(
+                sold_ids = json.dumps(ids),
+                shipping_price = price,
+                client_email=request.user.email,
+                client_id=str_id,
+                shipping_choose = shipping_choose,
+                shipping_rate= rate,
+                shipping_country= country,
+                address= address,
+                phone= phone,
+                postcode= postcode,
+            )
+            shipping_product.save()
+
+            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+
+
+@csrf_exempt
+def calculate_shipping_price(request):
+    if request.method == "POST":
+        dict = json.loads(request.POST.get("Products"))
+        ids = dict['ids']
+        rate = dict['rate']
+        country = dict['country']
+        dict_n = {}
+        print(ids)
+        print(rate)
+        print(country)
+        for shipping_type in ['air', 'sea1', 'sea2']:
+            w1 = 0
+            w2 = 0
+
+            for nr,id in enumerate(ids):
+
+                item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+                # if shipping_type == "air":
+                #     if item.allow_air == False:
+                #         return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping_type}"})
+                # if shipping_type == "sea1":
+                #     if item.allow_sea_1 == False:
+                #         return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping_type}"})
+                # if shipping_type == "sea2":
+                #     if item.allow_sea_2 == False:
+                #         return JsonResponse(status=404, data={'error': f"Product {id} can't be shipped with {shipping_type}"})
+
+
+                item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+
+                configurations = calc_conf.objects.all()[0]
+                markup = configurations.markup / 100
+                singapore_rate = configurations.singapore_rate
+                singapore_sensitive_rate = configurations.singapore_sensitive_rate
+                brunel_rate = configurations.brunel_rate
+                brunel_sensitive_rate = configurations.brunel_sensitive_rate
+                malaysia1_rate = configurations.malaysia1_rate
+                malaysia1_sensitive_rate = configurations.malaysia1_sensitive_rate
+                malaysia2_rate = configurations.malaysia2_rate
+                malaysia2_sensitive_rate = configurations.malaysia2_sensitive_rate
+                convert_rate = configurations.convert_rate
+                air_number = configurations.air_number
+                sea_1_number = configurations.sea_1_number
+                sea_2_number = configurations.sea_2_number
+                sea_1_min = configurations.sea_1_min
+                sea_1_price_under_min = configurations.sea_1_price_under_min
+                sea_1_price_over_min = configurations.sea_1_price_over_min
+                sea_2_min = configurations.sea_2_min
+                sea_2_price_under_min = configurations.sea_2_price_under_min
+                sea_2_price_over_min = configurations.sea_2_price_over_min
+
+
+                if country == "Malaysia1":
+                    normal = malaysia1_rate
+                    sensitive = malaysia1_sensitive_rate
+                elif country == "Malaysia2":
+                    normal = malaysia2_rate
+                    sensitive = malaysia2_sensitive_rate
+                elif country == "Singapore":
+                    normal = singapore_rate
+                    sensitive = singapore_sensitive_rate
+                elif country == "Brunel":
+                    normal = brunel_rate
+                    sensitive = brunel_sensitive_rate
+
+                length = item.length
+                width = item.width
+                height = item.height
+                weight = item.weight
+
+                #################### AIR SHIPPING
+                if shipping_type == "air":
+
+                    w1 += math.ceil(float(length) * float(width) * float(height) / air_number)
+                    w2 += math.ceil(float(weight))
+                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / air_number))
+                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
+                #################### SEA SHIPPING
+                if shipping_type == "sea1":
+
+                    w1 += math.ceil(float(length) * float(width) * float(height) / sea_1_number) / 10
+                    w2_b = math.ceil(float(weight))
+
+
+                    w2 += math.ceil(w2_b / 40) / 10
+
+                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / sea_1_number) / 10)
+                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
+
+
+                #################### SEA 2 SHIPPING
+
+                if shipping_type == "sea2":
+                    w1 += math.ceil(float(length) * float(width) * float(height) / sea_2_number)
+                    w2 += math.ceil(float(weight))
+                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / sea_2_number))
+                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
+
+
+            print("Total Volume: ", w1)
+            print("Total Weight: ", w2)
+
+
+            if shipping_type == "air":
+
+                if rate == "Normal":
+                    rm = normal
+                elif rate == "Sensitive":
+                    rm = sensitive
+                if w1 > w2:
+                    air_price = w1 * rm + (w1 * rm * markup)
+                else:
+                    air_price = w2 * rm + (w2 * rm * markup)
+
+                dict_n['air'] = air_price
+
+            #################### SEA SHIPPING
+            if shipping_type == "sea1":
+
+                if w1 < sea_1_min:
+                    w1 = sea_1_min
+
+                if w2 < sea_1_min:
+                    w2 = sea_1_min
+
+                if w1 > w2:
+                    sea_1_price = (w1 - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
+                else:
+                    sea_1_price = (w2 - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
+
+                dict_n['sea1'] = sea_1_price
+
+            #################### SEA 2 SHIPPING
+
+            if shipping_type == "sea2":
+
+                if w1 < sea_2_min:
+                    w1 = sea_2_min
+                if w2 < sea_2_min:
+                    w2 = sea_2_min
+                if w1 > w2:
+                    sea_2_price = (w1 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
+                else:
+                    sea_2_price = (w2 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
+
+                dict_n['sea2'] = sea_2_price
+
+        return JsonResponse(status=302, data={"prices":dict_n})
 
 
 @login_required(login_url=login_page)
-def pay_shipping(request, item_id, shipping_type):
-    item = sold.objects.all().filter(id=item_id, client_email=request.user.email)[0]
+def recharge(request):
+    if request.method == "POST":
+        amount = float(request.POST.get("charge_number"))
 
+        str_id = str(request.user.id)
+        while len(str_id) < 6:
+            str_id = "0"+str_id
 
-    if shipping_type == "air":
-        price = item.air_price
-    elif shipping_type == "sea_1":
-        price = item.sea_1_price
-    elif shipping_type == "sea_2":
-        price = item.sea_2_price
+            data = {
+            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+            'categoryCode' : '6elrtbk8',
+            'billName' : 'Purchase from Tolongbeli',
+            'billDescription' : "Recharging your wallet",
+            'billPriceSetting' : 1,
+            'billPayorInfo' : 0,
+            'billAmount' : amount*100,
+            'billReturnUrl' : 'http://127.0.0.1:8000/',
+            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billExternalReferenceNo' : "MY"+str_id,
+            'billTo' : request.user.username,
+            'billEmail' : request.user.email,
+            'billPhone' : "",
+            'billSplitPayment' : 0,
+            'billSplitPaymentArgs' : '',
+            'billPaymentChannel' : '0',
+            'billContentEmail' : 'Thank you for the recharge!',
+            'billChargeToCustomer' : 2,
+            }
+            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
 
-    str_id = str(request.user.id)
-    while len(str_id) < 6:
-        str_id = "0"+str_id
+            bill_code = json.loads(req.text)[0]['BillCode']
 
-    data = {
-    'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-    'categoryCode' : '6elrtbk8',
-    'billName' : 'Purchase from Tolongbeli',
-    'billDescription' : shipping_type.title()+" shipping fee for product "+ str(item_id),
-    'billPriceSetting' : 1,
-    'billPayorInfo' : 0,
-    'billAmount' : price*100,
-    'billReturnUrl' : 'http://127.0.0.1:8000/',
-    'billCallbackUrl' : 'http://127.0.0.1:8000/',
-    'billExternalReferenceNo' : "MY"+str_id,
-    'billTo' : request.user.username,
-    'billEmail' : request.user.email,
-    'billPhone' : "",
-    'billSplitPayment' : 0,
-    'billSplitPaymentArgs' : '',
-    'billPaymentChannel' : '0',
-    'billContentEmail' : 'Thank you for purchasing our product!',
-    'billChargeToCustomer' : 2,
-    }
-    req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-
-    bill_code = json.loads(req.text)[0]['BillCode']
-
-
-    item.shipping_bill = bill_code
-    item.shipping_choose = shipping_type
-
-    item.save()
-
-    return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            bill = recharge_bills.objects.create(
+                bill_code=bill_code,
+                client_email=request.user.email,
+                client_id=str_id,
+                amount=amount
+            )
+            bill.save()
+            return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
 

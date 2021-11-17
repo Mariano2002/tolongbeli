@@ -1,39 +1,39 @@
 {%  load static %}
-<!DOCTYPE html>
+{%  load static %}
+<!doctype html>
 <html class="no-js" lang="zxx">
     <head>
         <meta charset="utf-8">
         <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>eCommerce HTML-5 Template </title>
+        <title>Tolongbeli </title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="manifest" href="site.webmanifest">
-		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/nice-select.css' %}">
-        <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/images/logo.ico' %}">
+
+		<!-- CSS here -->
+            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/nice-select.css' %}">
+            <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
         <!-- CSS -->
         <link href="{% static 'assets/css/product_style.css' %}" rel="stylesheet">
         <meta name="robots" content="noindex,follow" />
+   </head>
 
-    </head>
-
-  <body>
-
-
-
+   <body>
     <header>
+        <p class="text-center" style="border-style: solid; border-color: crimson; background-color: crimson; color: black;">Our website was just launched, so please if you face any problem let us know, and we will fix it!</p>
         <!-- Header Start -->
        <div class="header-area">
             <div class="main-header ">
@@ -97,7 +97,7 @@
                             <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
                                 <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
                                     {% if user.is_authenticated %}
-                                       <li class="d-none d-lg-block"> <a href="/my_orders" class="btn header-btn">My Orders</a></li>
+                                       <li class="d-none d-lg-block"> <a href="/my_orders" class="btn header-btn">My Profile</a></li>
                                        <li class="d-none d-lg-block"> <a href="/logout" class="btn header-btn">Log Out</a></li>
                                     {% else %}
                                        <li class="d-none d-lg-block"> <a href="/login" class="btn header-btn">Sign in</a></li>
@@ -116,7 +116,6 @@
        </div>
         <!-- Header End -->
     </header>
-
 
 
 
@@ -167,9 +166,9 @@
                   <select name="variants" id="variants" onchange="javascript:change_price(this)" onload="javascript:change_price(this)">
                       {% for model in models %}
                           {% if model.name == "" %}
-                            <option class="variants" value="Default" id="Default">Default | {{ models.0.stock }}</option>
+                            <option class="variants" value="Default" id="Default">Default | Stock: {{ models.0.stock }}</option>
                           {% else %}
-                            <option class="variants" value="{{ model.name }}" id="{{ model.name }}">{{ model.name }} | {{ model.stock }}</option>
+                            <option class="variants" value="{{ model.name }}" id="{{ model.name }}">{{ model.name }} | Stock: {{ model.stock }}</option>
                           {% endif %}
                       {% endfor %}
                   </select>
@@ -189,30 +188,6 @@
                   </div>
               </div>
             </div>
-            <div class="col col-lg-4">
-              <div class="cable-config">
-                  <span>Rate</span>
-                  <div class="cable-choose">
-                      <select name="rates" id="rates">
-                            <option class="rate" value="Normal" id="Normal">Normal</option>
-                            <option class="rate" value="Sensitive" id="Sensitive">Sensitive</option>
-                      </select>
-                  </div>
-              </div>
-            </div>
-            <div class="col col-lg-4">
-              <div class="cable-config">
-                  <span>Country</span>
-                  <div class="cable-choose">
-                      <select name="countries" id="countries">
-                            <option class="country" value="Malaysia1" id="Malaysia1">Malaysia1</option>
-                            <option class="country" value="Malaysia2" id="Malaysia2">Malaysia2</option>
-                            <option class="country" value="Singapore" id="Singapore">Singapore</option>
-                            <option class="country" value="Brunel" id="Brunel">Brunel</option>
-                      </select>
-                  </div>
-              </div>
-            </div>
         </div>
 
         <!-- Product Pricing -->
@@ -226,7 +201,7 @@
             <span id="shipping_price" class="price" style="font-weight: 300;font-size: 25px;color: #43484D;">Shipping: Rp{{ shipping }}</span>
         </div>
       <br>
-      <a onclick="return buy()" href="#" id="buy" class="cart-btn">Buy now</a>
+      <a onclick="return buy()" href="#" id="buy" class="cart-btn">Add to cart</a>
       <br>
       <br>
 
@@ -279,10 +254,6 @@
             try {
                 variant = document.getElementById("variants").options[document.getElementById("variants").selectedIndex].id;
                 quantity = document.getElementById("quantity").value;
-                rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
-                country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
-                console.log(rate)
-                console.log(country)
             }
             catch {
                 return false
@@ -301,11 +272,13 @@
 
 
             if("{{ url }}".includes("shopee.co.id")){
-                document.getElementById("buy").href = "{% url 'buy_shopee' id 12345 54321 67890 9876 %}".replace(/12345/, variant).replace(/54321/, quantity).replace(/67890/, rate).replace(/9876/, country);
+                document.getElementById("buy").href = "{% url 'addCart_shopee' id 12345 54321 %}".replace(/12345/, variant).replace(/54321/, quantity);
             } else {
-                document.getElementById("buy").href = "{% url 'buy_tokopedia' id 12345 54321  67890 9876 %}".replace(/12345/, variant).replace(/54321/, quantity).replace(/67890/, rate).replace(/9876/, country);
+                document.getElementById("buy").href = "{% url 'addCart_tokopedia' id 12345 54321 %}".replace(/12345/, variant).replace(/54321/, quantity);
             }
         }
+
+
     </script>
     <!-- Scripts -->
     <script src="{% static 'assets/js/jquery-1.12.1.min.js' %}" charset="utf-8"></script>

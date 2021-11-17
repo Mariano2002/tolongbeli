@@ -188,6 +188,7 @@ html, body {
   padding: 12px 30px;
   transition: all .5s;
 }
+
 .cart-btn:hover {
   background-color: #64af3d;
 }

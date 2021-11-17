@@ -1,115 +1,6 @@
 {%  load static %}
-<!doctype html>
-<html class="no-js" lang="zxx">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="x-ua-compatible" content="ie=edge">
-        <title>eCommerce HTML-5 Template </title>
-        <meta name="description" content="">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="manifest" href="site.webmanifest">
-		<link rel="shortcut icon" type="image/x-icon" href="{% static 'assets/img/favicon.ico' %}">
+{% include 'header.html' %}
 
-		<!-- CSS here -->
-            <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/owl.carousel.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/flaticon.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/slicknav.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/animate.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/magnific-popup.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/fontawesome-all.min.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/themify-icons.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/slick.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/nice-select.css' %}">
-            <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
-   </head>
-
-   <body>
-
-
-    <header>
-        <!-- Header Start -->
-       <div class="header-area">
-            <div class="main-header ">
-                <div class="header-top top-bg d-none d-lg-block">
-                   <div class="container-fluid">
-                       <div class="col-xl-12">
-                            <div class="row d-flex justify-content-between align-items-center">
-                                <div class="header-info-left d-flex">
-                                    <ul class="contact-now">
-                                        <li>+60 111 030 0940</li>
-                                    </ul>
-                                </div>
-                                <div class="header-info-right">
-                                   <ul>
-                                       <li><a>Kadar tukar RM 1= RP 3300 , Kadar upah 10% dari total cost</a></li>
-                                   </ul>
-                                </div>
-                            </div>
-                       </div>
-                   </div>
-                </div>
-               <div class="header-bottom  header-sticky">
-                    <div class="container-fluid">
-                        <div class="row align-items-center">
-                            <!-- Logo -->
-                            <div class="col-xl-1 col-lg-1 col-md-1 col-sm-3">
-                                <div class="logo">
-                                  <a href="/home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
-                                </div>
-                            </div>
-                            <div class="col-xl-6 col-lg-8 col-md-7 col-sm-5">
-                                <!-- Main-menu -->
-                                <div class="main-menu f-right d-none d-lg-block">
-                                    <nav>
-                                        <ul id="navigation">
-                                            <li><a href="/home">Home</a></li>
-                                            <li><a href="/shop">Shop</a></li>
-                                            {% if user.is_superuser %}
-                                            <li><a href="/calculator">Calculator</a>
-                                                <ul class="submenu">
-                                                    <li><a href="/calculator_configuration">Configure calculator</a></li>
-                                                </ul>
-                                            </li>
-                                            {% else %}
-                                            <li><a href="/calculator">Calculator</a></li>
-                                            {% endif %}
-
-                                            <li><a href="#">Pages</a>
-                                                <ul class="submenu">
-                                                    <li><a href="#">Tracking</a></li>
-                                                    <li><a href="#">Frequently asked questions</a></li>
-                                                    <li><a href="#">Terms and conditions</a></li>
-                                                    <li><a href="#">Testimonial</a></li>
-                                                    <li><a href="#">Contact</a></li>
-                                                </ul>
-                                            </li>
-                                        </ul>
-                                    </nav>
-                                </div>
-                            </div>
-                            <div class="col-xl-5 col-lg-3 col-md-3 col-sm-3 fix-card">
-                                <ul class="header-right f-right d-none d-lg-block d-flex justify-content-between">
-                                    {% if user.is_authenticated %}
-                                       <li class="d-none d-lg-block"> <a href="/my_orders" class="btn header-btn">My Orders</a></li>
-                                       <li class="d-none d-lg-block"> <a href="/logout" class="btn header-btn">Log Out</a></li>
-                                    {% else %}
-                                       <li class="d-none d-lg-block"> <a href="/login" class="btn header-btn">Sign in</a></li>
-                                       <li class="d-none d-lg-block"> <a href="/signup" class="btn header-btn">Register</a></li>
-                                    {% endif %}
-                                </ul>
-                            </div>
-                            <!-- Mobile Menu -->
-                            <div class="col-12">
-                                <div class="mobile_menu d-block d-lg-none"></div>
-                            </div>
-                        </div>
-                    </div>
-               </div>
-            </div>
-       </div>
-        <!-- Header End -->
-    </header>
 
 
     <main>
@@ -133,180 +24,569 @@
         <br>
         <br>
         <br>
+        {% if new_bills|length != 0 %}
+            <h3 class="text-center">You have a new bill to pay</h3>
+              {% for key, values in new_bills.items %}
+                <p class="text-center">Bill description: {{ values.description }} | Bill price: {{ values.price }} | <a style="color: black" href="https://toyyibpay.com/{{ values.bill_code }}">Pay here</a></p>
+              {% endfor %}
+        {% endif %}
+
         {% if orders|length == 0 %}
             <h3 class="text-center">You have no orders</h3>
         {% else %}
+            <h3 class="text-center">Your orders</h3>
+            <br>
             <div class="row justify-content-md-center">
-                <div class="col col-lg-10">
-                    <div id="results text-center">
-                        <table class="table table-bordered table-responsive">
+                <div class="col col-lg-8">
+                        <table id="orders" class="table table-bordered table-responsive">
                           <thead class="thead-dark">
                             <tr>
-                              <th style="width:30%" scope="col">Name</th>
+                              <th scope="col">ID</th>
+                              <th scope="col">Name</th>
                               <th scope="col">Variant</th>
                               <th scope="col">Quantity</th>
                               <th scope="col">Price</th>
                               <th scope="col">Price in RM</th>
-                              <th scope="col">Shipping Country</th>
-                              <th scope="col">Shipping Rate</th>
+                              <th scope="col">Comments</th>
                               <th scope="col">Status</th>
-                              <th scope="col">Action</th>
+                              <th scope="col">Select</th>
                             </tr>
                           </thead>
                           <tbody>
 
                   {% for key, values in orders.items %}
                     <tr>
-                      <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:50 }}</a></u></td>
+                      <td>{{ values.id }}</td>
+                      <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
                       <td>{{ values.variant }}</td>
                       <td>{{ values.quantity }}</td>
                       <td>{{ values.price }}</td>
                       <td>{{ values.rmprice }}</td>
-                      <td>{{ values.shipping_country }}</td>
-                      <td>{{ values.shipping_rate }}</td>
+                      <td>{{ values.extra_info }}</td>
 
-                      {% if values.order_status == "NOT PAID" and values.bill_new == 1 %}
-                        <td>Not Paid</td>
-                        <td>Price adjusted. <u><a href="https://toyyibpay.com/{{ values.bill_code }}" target="_blank" style="color: black;">Pay now</a></u> the new bill</td>
-                      {% elif values.order_status == "NOT PAID" %}
-                        <td>Not Paid</td>
-                        <td><u><a href="https://toyyibpay.com/{{ values.bill_code }}" target="_blank" style="color: black;">Pay now</a></u></td>
+
+                      {% if values.order_status == "CANCELLED STOCK" %}
+                        <td>Cancelled by seller - did not have stock</td>
+                      {% elif values.order_status == "CANCELLED SOLD" %}
+                        <td>Cancelled by seller - item sold out</td>
+                      {% elif values.order_status == "CANCELLED SHIP" %}
+                        <td>Cancelled by system - seller did not shipout</td>
                       {% elif values.order_status == "BUYING" %}
-                        <td>Paid</td>
-                        <td>Product will be ordered soon</td>
+                        <td>Buying - Product will be ordered soon</td>
                       {% elif values.order_status == "ORDERED" %}
-                        <td>Ordered</td>
-                        <td>Waiting for the seller to ship the product</td>
+                        <td>Ordered - Waiting for the seller to ship the order</td>
                       {% elif values.order_status == "SHIPPED" %}
-                        <td>Shipped</td>
-                        <td>Waiting for the product to arrive</td>
+                        <td>Shipped - Waiting for the product to arrive</td>
                       {% elif values.order_status == "ARRIVED" %}
-                        {% if values.air_price == 0.0 and values.sea_1_price == 0.0 and values.sea_2_price == 0.0 %}
-                            <td>No data yet</td>
-                            <td>Waiting for the shipping price to be calculated</td>
-                        {% else %}
                             {% if values.shipping_status == "NOT PAID" %}
-                                <td>Arrived to warehouse</td>
-                                <td>
-                                    <u><a href="{% url 'pay_shipping' values.id 'air' %}" style="color: black">Air - Rm {{ values.air_price }}</a></u><br>
-                                    <u><a href="{% url 'pay_shipping' values.id 'sea_1' %}" style="color: black">Sea 1 - Rm {{ values.sea_1_price }}</a></u><br>
-                                    <u><a href="{% url 'pay_shipping' values.id 'sea_2' %}" style="color: black">Sea 2 - Rm {{ values.sea_2_price }}</a></u>
-                                </td>
+                                {% if values.can_ship == "False" %}
+                                    <td>Arrived to warehouse - waiting for the measurements</td>
+                                {% else %}
+                                    <td>Arrived to warehouse - Ready to ship to you</td>
+                                {% endif %}
                             {% elif values.shipping_status == "NOT SHIPPED" %}
-                                <td>On the warehouse</td>
-                                <td>The order has not been shipped yet</td>
+                                <td>Paid but not been shipped yet</td>
                             {% elif values.shipping_status == "SHIPPED" %}
-                                <td>Shipped</td>
-                                <td>Waiting for the product to arrive</td>
+                                <td>Shipped to your destination</td>
                             {% elif values.shipping_status == "ARRIVED" %}
-                                <td>Arrived</td>
-                                <td>The item has arrive</td>
+                                <td>Arrived on your destination</td>
                             {% endif %}
-                        {% endif %}
                       {% endif %}
+                      <td>
+                          <div class="custom-control custom-checkbox text-center">
+                            {% if values.can_ship == "False" %}
+                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}" disabled>
+                            {% else %}
+                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}">
+                            {% endif %}
+                          <label class="custom-control-label" for="shippingCheck{{ values.id }}"></label>
+                          </div>
+                      </td>
                     </tr>
                   {% endfor %}
 
                   </tbody>
                         </table>
+                <div class="row">
+                    <div class="col-md-12 order-md-1">
+
+                      <form class="needs-validation" novalidate="">
+                          <h2 id="error"></h2>
+                          <div class="row">
+                          <div class="col-md-4 order-md-2 mb-4"><p></p></div>
+                        <div class="col-md-4 order-md-2 mb-4">
+                          <h4 class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-muted">Prices</span>
+                          </h4>
+                            <ul class="list-group mb-3">
+                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                  <div>
+                                    <h6 class="my-0">Air Price</h6>
+                                  </div>
+                                  <span id="air_price" class="text-muted">RM</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                  <div>
+                                    <h6 class="my-0">Sea 1 price</h6>
+                                  </div>
+                                  <span id="sea1_price" class="text-muted">RM</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                  <div>
+                                    <h6 class="my-0">Sea 2 price</h6>
+                                  </div>
+                                  <span id="sea2_price" class="text-muted">RM</span>
+                                </li>
+                            </ul>
+
+                        </div>
+                        </div>
+
+
+                        <hr class="mb-4">
+                        <div class="mb-3">
+                          <label for="address">Address</label>
+                          <input type="text" class="form-control" id="address" placeholder="Address" required="">
+                          <div class="invalid-feedback">
+                            Please enter your shipping address.
+                          </div>
+                        </div>
+
+                        <div class="mb-3">
+                          <label for="postcode">Postcode</label>
+                          <input type="text" class="form-control" id="postcode" placeholder="Postcode">
+                          <div class="invalid-feedback">
+                            Please enter your shipping postcode.
+                          </div>
+                        </div>
+
+
+                        <div class="mb-3">
+                          <label for="phone">Phone</label>
+                          <input type="text" class="form-control" id="phone" placeholder="Phone" required="">
+                          <div class="invalid-feedback">
+                            Please enter your shipping phone.
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-md-4 mb-3">
+                            <label for="shipping">Type</label>
+                              <select class="w-100" name="shipping" id="shipping">
+                                    <option class="shipping" value="air" id="air">Air</option>
+                                    <option class="shipping" value="sea1" id="sea1">Sea 1</option>
+                                    <option class="shipping" value="sea2" id="sea2">Sea 2</option>
+                              </select>
+                            <div class="invalid-feedback">
+                              Please select a valid country.
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-3">
+                            <label for="rates">Rate</label>
+                              <select class="w-100" name="rates" id="rates" onchange="change_ship()">
+                                  <option class="rate" value="Normal" id="Normal">Normal</option>
+                                  <option class="rate" value="Sensitive" id="Sensitive">Sensitive</option>
+                              </select>
+                            <div class="invalid-feedback">
+                              Please provide a valid state.
+                            </div>
+                          </div>
+                          <div class="col-md-4 mb-3">
+                            <label for="countries">Country</label>
+                              <select class="w-100" name="countries" id="countries" onchange="change_ship()">
+                                    <option class="country" value="Malaysia1" id="Malaysia1">Malaysia1</option>
+                                    <option class="country" value="Malaysia2" id="Malaysia2">Malaysia2</option>
+                                    <option class="country" value="Singapore" id="Singapore">Singapore</option>
+                                    <option class="country" value="Brunel" id="Brunel">Brunel</option>
+                              </select>
+                            <div class="invalid-feedback">
+                              Zip code required.
+                            </div>
+                          </div>
+                        </div>
+                        <hr class="mb-4">
+
+                      </form>
                     </div>
+                  </div>
+
+                <div class="text-right">
+                <button onclick="ship()" id="shipout" class="btn_1" style="text-align: right">Ship Out</button>
+                </div>
+
                 </div>
             </div>
         {% endif %}
 
+        <br>
+        <hr>
+        <br>
 
-    </main>
-   <footer>
+        {% if cart|length == 0 %}
+            <h3 class="text-center">You have no items on your cart</h3>
+        {% else %}
+            <h3 class="text-center">Your cart</h3>
+            <br>
+            <div class="row justify-content-md-center">
+                <div class="col col-lg-8">
+                        <table id="cart" class="table table-bordered table-responsive">
+                          <thead class="thead-dark">
+                            <tr>
+                              <th scope="col">ID</th>
+                              <th style="width:30%" scope="col">Name</th>
+                              <th scope="col">Variant</th>
+                              <th scope="col">Quantity</th>
+                              <th scope="col">Price</th>
+                              <th scope="col">Price in RM</th>
+                              <th scope="col">Comments</th>
+                              <th scope="col">Action</th>
+                              <th scope="col">Select</th>
+                            </tr>
+                          </thead>
+                          <tbody>
 
-       <!-- Footer Start-->
-       <div class="footer-area footer-padding">
-           <div class="container">
-               <div class="row d-flex justify-content-between">
-                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-6">
-                      <div class="single-footer-caption mb-50">
-                        <div class="single-footer-caption mb-30">
-                             <!-- logo -->
-                            <div class="footer-logo">
-                                <a href="/home"><img src="{% static 'assets/images/logo.png' %}" alt=""></a>
-                            </div>
-                            <div class="footer-tittle">
-                                <div class="footer-pera">
-                                    <p>Tolong Beli </p>
-                               </div>
-                            </div>
-                        </div>
-                      </div>
-                   </div>
-                   <div class="col-xl-2 col-lg-3 col-md-3 col-sm-5">
-                       <div class="single-footer-caption mb-50">
-                           <div class="footer-tittle">
-                               <h4>Quick Links</h4>
-                               <ul>
-                                   <li><a href="/home">Home</a></li>
-                                    {% if user.is_authenticated %}
-                                        <li><a href="/my_orders">My Orders</a></li>
-                                        <li><a href="/logout">Log Out</a></li>
-                                    {% else %}
-                                        <li><a href="/login">Sign In</a></li>
-                                        <li><a href="/signup">Register</a></li>
-                                    {% endif %}
-                               </ul>
-                           </div>
-                       </div>
-                   </div>
-                   <div class="col-xl-3 col-lg-3 col-md-4 col-sm-7">
-                       <div class="single-footer-caption mb-50">
-                           <div class="footer-tittle">
-                               <h4>Shopping</h4>
-                               <ul>
-                                   <li><a href="/shop">Shop</a></li>
-                                   <li><a href="/calculator">Calculator</a></li>
-                                   <li><a href="#">Tracking</a></li>
-                               </ul>
-                           </div>
-                       </div>
-                   </div>
-                   <div class="col-xl-3 col-lg-3 col-md-5 col-sm-7">
-                       <div class="single-footer-caption mb-50">
-                           <div class="footer-tittle">
-                               <h4>Support</h4>
-                               <ul>
-                                <li><a href="#">Frequently Asked Questions</a></li>
-                                <li><a href="#">Terms & Conditions</a></li>
-                                <li><a href="#">Testimonials</a></li>
-                                <li><a href="#">Contact</a></li>
-                            </ul>
-                           </div>
-                       </div>
-                   </div>
-               </div>
-               <!-- Footer bottom -->
-               <div class="row">
-                <div class="col-xl-7 col-lg-7 col-md-7">
-                    <div class="footer-copy-right">
-                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This website is made by <a href="https://www.fiverr.com/mariano_b" target="_blank">Mariano Baçi</a>
-  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>                   </div>
+                          {% for key, values in cart.items %}
+                            <tr>
+                              <td>{{ values.id }}</td>
+                              <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
+                              <td>{{ values.variant }}</td>
+                              <td>{{ values.quantity }}</td>
+                              <td>{{ values.price }}</td>
+                              <td>{{ values.rmprice }}</td>
+                              <td contenteditable="true"></td>
+                              <td><u><a href="{% url 'removeCart' values.id %}" style="color: black;">Remove</a></u></td>
+                              <td><div class="custom-control custom-checkbox text-center">
+                                  <input type="checkbox" class="custom-control-input"  onchange="change_checkout()" id="customCheck{{ values.id }}">
+                                  <label class="custom-control-label" for="customCheck{{ values.id }}"></label>
+                              </div></td>
+                            </tr>
+                          {% endfor %}
+
+                          </tbody>
+                        </table>
+                <div id="to_pay2" class="text-right">
+                    <h3></h3>
                 </div>
-                 <div class="col-xl-5 col-lg-5 col-md-5">
-                    <div class="footer-copy-right f-right">
-                        <!-- social -->
-                        <div class="footer-social">
-                            <a href="#"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#"><i class="fab fa-instagram"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                        </div>
-                    </div>
+                <div class="text-right">
+                <button onclick="checkout()" id="checkout" class="btn_1" style="text-align: right">Check Out</button>
+                </div>
                 </div>
             </div>
-           </div>
-       </div>
-       <!-- Footer End-->
+            {% endif %}
+                <hr class="mb-4">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <form action="{% url 'recharge' %}" method="POST">
+                            {% csrf_token %}
+                            <label for="address">Value</label>
+                            <input type="number" class="form-control" id="charge_number" name="charge_number" value="1" min="1" max="1000">
+                            <br>
+                            <div class="text-right">
+                            <button type="submit" class="btn_1" style="text-align: right">Recharge</button>
+                            </div>
+                        </form>
+                        <hr class="mb-4">
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                      <form class="needs-validation" novalidate="" method="POST">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                          <label for="name">Name</label>
+                            {{ refund_form.name.as_hidden }}
+                          <input type="text" class="form-control" id="name" name="name" placeholder="Name" required="">
+                            {{ refund_form.client_email.as_hidden }}
 
-   </footer>
+                        </div>
+
+                        <div class="mb-3">
+                          <label for="bank_name">Bank Name</label>
+                            {{ refund_form.bank_name.as_hidden }}
+                          <input type="text" class="form-control" id="bank_name" name="bank_name" placeholder="Bank Name">
+
+                        </div>
+
+
+                        <div class="mb-3">
+                          <label for="acc_number">Account Number</label>
+                            {{ refund_form.account_number.as_hidden }}
+                          <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Account Number" required="">
+
+                        </div>
+                        <div class="mb-3">
+                            <label for="value">Value to withdraw</label>
+                            {{ refund_form.value.as_hidden }}
+                            <input type="number" class="form-control" id="value" name="value" min="1" max="1000">
+
+                        </div>
+
+
+                        <br>
+                        <div class="text-right">
+                        <input class="btn_1" type="submit" value="Ask for Refund" />
+                        </div>
+                      </form>
+                <hr class="mb-4">
+                    </div>
+                </div>
+
+                <div class="row justify-content-center">
+
+        <div class="col-md-4 order-md-2 mb-4">
+          <h4 class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted">Your wallet</span>
+            <span class="badge badge-secondary badge-pill">Balance: RM {{ balance }}</span>
+
+          </h4>
+          <ul class="list-group mb-3">
+
+                {% for hist in history %}
+                    {% if hist.in_out %}
+                        <li class="list-group-item d-flex justify-content-between bg-light">
+                          <div class="text-success">
+                            <small>{{ hist.notes }}</small>
+                          </div>
+                          <span class="text-success">+RM {{ hist.value }}</span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item d-flex justify-content-between bg-light">
+                          <div class="text-danger">
+                            <small>{{ hist.notes }}</small>
+                          </div>
+                          <span class="text-danger">-RM {{ hist.value }}</span>
+                        </li>
+                    {% endif %}
+
+              {% endfor %}
+
+          </ul>
+
+        </div>
+
+                </div>
+
+            </div>
+
+
+
+    </main>
+
+{% include 'footer.html' %}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
 	<!-- JS here -->
+        <script>
 
+         function checkout() {
+             document.getElementById("checkout").disabled = true;
+             var params = new Object();
+             var trs = document.getElementById("cart").getElementsByTagName("tr")
+             console.log(trs)
+             var ids = 0
+             for (let item of trs) {
+
+                 try {
+                     if (item.getElementsByTagName("td")[8].getElementsByTagName("input")[0].checked === true) {
+                         ids = ids+1
+                         console.log(item.getElementsByTagName("td")[0].innerText)
+                         params[item.getElementsByTagName("td")[0].innerText] = item.getElementsByTagName("td")[6].innerText
+                     }
+                 } catch {
+
+                 }
+             }
+             console.log(params)
+             if (ids !== 0) {
+                 var http = new XMLHttpRequest();
+                 var url = "/buy";
+                 http.onreadystatechange = function () {
+                     if (this.readyState == 4 && this.status == 302) {
+                         var json = JSON.parse(this.responseText);
+                         console.log(json.success);
+                         // following line would actually change the url of your window.
+                         window.location.href = json.success;
+                     }
+                 }
+                 http.open("POST", url, true);
+                 http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                 http.send('Products=' + JSON.stringify(params));
+
+             }
+             else{
+
+                document.getElementById("checkout").disabled = false;
+             }
+         }
+
+         function change_checkout() {
+            var price = parseFloat(0)
+            var trs = document.getElementById("cart").getElementsByTagName("tr")
+            console.log(trs)
+            for (let item of trs) {
+
+                try {
+                    if (item.getElementsByTagName("td")[8].getElementsByTagName("input")[0].checked === true){
+                        console.log("eshte")
+                        price = price + parseFloat(item.getElementsByTagName("td")[5].innerText)
+                    }
+                }
+                catch {
+
+                }
+            }
+            if (price !== 0) {
+                $("#to_pay2 h3").html("Total to pay " + String(price));
+            }
+            else {
+
+                $("#to_pay2 h3").html("");
+            }
+
+        }
+
+
+         function change_ship() {
+            rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
+            country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
+            var ids = []
+            var trs = document.getElementById("orders").getElementsByTagName("tr")
+            console.log(trs)
+            for (let item of trs) {
+
+                try {
+                    if (item.getElementsByTagName("td")[8].getElementsByTagName("input")[0].checked === true){
+                        ids.push(item.getElementsByTagName("td")[0].innerText)
+                    }
+                }
+                catch {
+
+                }
+            }
+            if (ids.length !== 0) {
+                var params = {
+                    "ids": ids,
+                    "rate": rate,
+                    "country": country,
+                }
+
+                var http = new XMLHttpRequest();
+                var url = "/calculate_shipping_price";
+                http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 302) {
+                        var json = JSON.parse(this.responseText);
+                        //following line would actually change the url of your window.
+                        //window.location.href = json.success;
+                        console.log(json)
+                        console.log(json.prices.air)
+                       $("#air_price").html("RM "+String(json.prices.air));
+                       $("#sea1_price").html("RM "+String(json.prices.sea1));
+                       $("#sea2_price").html("RM "+String(json.prices.sea2));
+                    }
+                    else if (this.status == 404){
+                        var json = JSON.parse(this.responseText);
+                        console.log(json.error);
+                       $("#to_pay h3").html(json.error);
+                    }
+                }
+                http.open("POST", url, true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send('Products=' + JSON.stringify(params));
+            }
+            else {
+
+                       $("#air_price").html("RM ");
+                       $("#sea1_price").html("RM ");
+                       $("#sea2_price").html("RM ");
+            }
+
+        }
+
+
+         function ship(){
+            document.getElementById("shipout").disabled = true;
+            address = document.getElementById("address").value
+            postcode = document.getElementById("postcode").value;
+            phone = document.getElementById("phone").value;
+            console.log(address)
+            shipping = document.getElementById("shipping").options[document.getElementById("shipping").selectedIndex].id;
+            rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
+            country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
+            var ids = []
+            var trs = document.getElementById("orders").getElementsByTagName("tr")
+            console.log(trs)
+            for (let item of trs) {
+
+                try {
+                    if (item.getElementsByTagName("td")[8].getElementsByTagName("input")[0].checked === true){
+                        ids.push(item.getElementsByTagName("td")[0].innerText)
+                    }
+                }
+                catch {
+
+                }
+            }
+            if (ids.length !== 0) {
+                var params = {
+                    "ids": ids,
+                    "shipping": shipping,
+                    "rate": rate,
+                    "country": country,
+                }
+
+                var http = new XMLHttpRequest();
+                var url = "/calculate_shipping_price";
+                http.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 302) {
+                        var json = JSON.parse(this.responseText);
+                        console.log(json.success);
+                        var params = {
+                            "ids": ids,
+                            "shipping": shipping,
+                            "rate": rate,
+                            "country": country,
+                            "data" : json.success,
+                            "prices" : json.prices,
+                            "address" : address,
+                            "postcode" : postcode,
+                            "phone" : phone,
+                        }
+                        var http1 = new XMLHttpRequest();
+                        var url1 = "/pay_shipping";
+                        http1.onreadystatechange = function () {
+                            if (this.readyState == 4 && this.status == 302) {
+                                var json = JSON.parse(this.responseText);
+                                console.log(json.success);
+                                window.location.href = json.success;
+                            }
+                        }
+                        http1.open("POST", url1, true);
+                        http1.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                        http1.send('Products=' + JSON.stringify(params));
+
+
+                    }
+                    else if (this.status == 404){
+                        var json = JSON.parse(this.responseText);
+                        console.log(json.error);
+                       $("#error").html(json.error);
+                        document.getElementById("shipout").disabled = false;
+                    }
+                }
+                http.open("POST", url, true);
+                http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+                http.send('Products=' + JSON.stringify(params));
+            }
+            else {
+
+                document.getElementById("shipout").disabled = false;
+            }
+            }
+
+
+
+        </script>
 		<!-- All JS Custom Plugins Link Here here -->
         <script src="{% static 'assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
 		<!-- Jquery, Popper, Bootstrap -->

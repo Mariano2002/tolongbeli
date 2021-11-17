@@ -9,8 +9,159 @@ class RequestLogger():
 
     def __call__(self, request):
         print(request.path)
-        if "/admin/website/sold/" in request.path  or "/admin/website/soldmain/" in request.path:
-            items = sold.objects.all().filter(order_status="NOT PAID")
+        if "/admin/website/sold" in request.path  or "/admin/website/soldmain/" in request.path:
+            items = recharge_bills.objects.all().filter(bill_status="NOT PAID")
+
+            for item in items:
+                data = {
+                    'billCode': item.bill_code,
+                    'billpaymentStatus': '0'
+                    }
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                            item.bill_status = "PAID"
+                            item.save()
+                            walleti = wallet.objects.all().filter(client_email=item.client_email)[0]
+                            walleti.balance = walleti.balance + item.amount
+                            walleti.save()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = item.amount,
+                                notes = "Recharge from user",
+                                in_out = 1,
+                            )
+                            hist.save()
+
+            items = order_bills.objects.all().filter(bill_status="NOT PAID", bill_code="balance")
+            for item in items:
+                item.bill_status = "PAID"
+                item.save()
+                product = cart.objects.all().filter(id=item.cart_id)[0]
+                str_id = str(request.user.id)
+                while len(str_id) < 6:
+                    str_id = "0" + str_id
+
+                product_buy = sold.objects.create(
+                    id_product = product.id_product,
+                    name = product.name,
+                    price = product.price,
+                    rmprice= product.rmprice,
+                    variant = product.variant,
+                    url = "/shopee/"+product.url,
+                    client_email= product.client_email,
+                    client_id= "MY"+str_id,
+                    quantity= product.quantity,
+                    extra_info = product.extra_info,
+                    bill_id = item.id
+                )
+                product_buy.save()
+                product.delete()
+                hist = history.objects.create(
+                    client_email = item.client_email,
+                    value = product.rmprice,
+                    notes = "Product purchase",
+                    in_out = 0,
+                )
+                hist.save()
+
+
+            items = shipping_bills.objects.all().filter(bill_status="NOT PAID", bill_code="balance")
+            for item in items:
+                item.bill_status = "PAID"
+                item.save()
+                product = shipping.objects.all().filter(sold_ids=item.product_ids)[0]
+                str_id = str(request.user.id)
+                while len(str_id) < 6:
+                    str_id = "0" + str_id
+                product.shipping_status = "NOT SHIPPED"
+                product.save()
+                hist = history.objects.create(
+                    client_email = item.client_email,
+                    value = product.shipping_price,
+                    notes = "Shipping paid",
+                    in_out = 0,
+                )
+                hist.save()
+
+
+            items = order_bills.objects.all().filter(bill_status="NOT PAID")
+            code_id = []
+            for i in items:
+                if i.bill_code not in code_id:
+                    code_id.append(i.bill_code)
+            print(code_id)
+            for bill_code in code_id:
+                data = {
+                    'billCode': bill_code,
+                    'billpaymentStatus': '0'
+                    }
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                        items = order_bills.objects.all().filter(bill_code=bill_code)
+                        for item in items:
+                            item.bill_status = "PAID"
+                            item.save()
+                            product = cart.objects.all().filter(id=item.cart_id)[0]
+                            str_id = str(request.user.id)
+                            while len(str_id) < 6:
+                                str_id = "0" + str_id
+
+                            product_buy = sold.objects.create(
+                                id_product = product.id_product,
+                                name = product.name,
+                                price = product.price,
+                                rmprice= product.rmprice,
+                                variant = product.variant,
+                                url = "/shopee/"+product.url,
+                                client_email= product.client_email,
+                                client_id= "MY"+str_id,
+                                quantity= product.quantity,
+                                extra_info = product.extra_info,
+                                bill_id = item.id
+                            )
+                            product_buy.save()
+                            product.delete()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = product.rmprice,
+                                notes = "Product purchase",
+                                in_out = 0,
+                            )
+                            hist.save()
+
+            items = shipping_bills.objects.all().filter(bill_status="NOT PAID")
+            code_id = []
+            for i in items:
+                if i.bill_code not in code_id:
+                    code_id.append(i.bill_code)
+            print(code_id)
+
+            for bill_code in code_id:
+                data = {
+                    'billCode': bill_code,
+                    'billpaymentStatus': '0'
+                    }
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                        items = shipping_bills.objects.all().filter(bill_code=bill_code)
+                        for item in items:
+                            item.bill_status = "PAID"
+                            item.save()
+                            product = shipping.objects.all().filter(sold_ids=item.product_ids)[0]
+                            str_id = str(request.user.id)
+                            while len(str_id) < 6:
+                                str_id = "0" + str_id
+                            product.shipping_status = "NOT SHIPPED"
+                            product.save()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = product.shipping_price,
+                                notes = "Shipping paid",
+                                in_out = 0,
+                            )
+                            hist.save()
+
+            items = new_bills.objects.all().filter(bill_status="NOT PAID")
             for i in items:
                 data = {
                     'billCode': i.bill_code,
@@ -18,249 +169,227 @@ class RequestLogger():
                 }
                 try:
                     req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                    if json.loads(req.text)[0]['billpaymentStatus'] == "1":
-                        i.order_status = "BUYING"
+                    if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+                        i.bill_status = "PAID"
                         i.save()
-                except:
-                    print("error")
-
-            items = sold.objects.all().filter(shipping_status="NOT PAID")
-            for i in items:
-                if i.shipping_bill != "":
-                    data = {
-                        'billCode': i.shipping_bill,
-                        'billpaymentStatus': '0'
-                    }
-                    try:
-                        req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                        if json.loads(req.text)[0]['billpaymentStatus'] == "1":
-                            i.shipping_status = "NOT SHIPPED"
-                            i.save()
-                    except:
-                        print("error")
-
-            items = sold.objects.all().filter(~Q(length=0.0, width=0.0, height=0.0, weight=0.0), air_price=0.0, sea_1_price=0.0, sea_2_price=0.0)
-            for i in items:
-
-                configurations = calc_conf.objects.all()[0]
-                markup = configurations.markup / 100
-                singapore_rate = configurations.singapore_rate
-                singapore_sensitive_rate = configurations.singapore_sensitive_rate
-                brunel_rate = configurations.brunel_rate
-                brunel_sensitive_rate = configurations.brunel_sensitive_rate
-                malaysia1_rate = configurations.malaysia1_rate
-                malaysia1_sensitive_rate = configurations.malaysia1_sensitive_rate
-                malaysia2_rate = configurations.malaysia2_rate
-                malaysia2_sensitive_rate = configurations.malaysia2_sensitive_rate
-                convert_rate = configurations.convert_rate
-                air_number = configurations.air_number
-                sea_1_number = configurations.sea_1_number
-                sea_2_number = configurations.sea_2_number
-                sea_1_min = configurations.sea_1_min
-                sea_1_price_under_min = configurations.sea_1_price_under_min
-                sea_1_price_over_min = configurations.sea_1_price_over_min
-                sea_2_min = configurations.sea_2_min
-                sea_2_price_under_min = configurations.sea_2_price_under_min
-                sea_2_price_over_min = configurations.sea_2_price_over_min
-                country = i.shipping_country
-
-                if country == "Malaysia1":
-                    normal = malaysia1_rate
-                    sensitive = malaysia1_sensitive_rate
-                elif country == "Malaysia2":
-                    normal = malaysia2_rate
-                    sensitive = malaysia2_sensitive_rate
-                elif country == "Singapore":
-                    normal = singapore_rate
-                    sensitive = singapore_sensitive_rate
-                elif country == "Brunel":
-                    normal = brunel_rate
-                    sensitive = brunel_sensitive_rate
-
-
-
-
-                #################### AIR SHIPPING
-
-                rate = i.shipping_rate
-                length = i.length
-                width = i.width
-                height = i.height
-                weight = i.weight
-                w1 = math.ceil(float(length) * float(width) * float(height) / air_number)
-                w2 = math.ceil(float(weight))
-                if rate == "Normal":
-                    rm = normal
-                elif rate == "Sensitive":
-                    rm = sensitive
-                if w1 > w2:
-                    air_price = w1 * rm + (w1 * rm * markup)
-                else:
-                    air_price = w2 * rm + (w2 * rm * markup)
-
-                i.air_price = air_price
-
-                #################### SEA SHIPPING
-
-                w1 = math.ceil(float(length) * float(width) * float(height) / sea_1_number) / 10
-                if w1 < sea_1_min:
-                    w1 = sea_1_min
-
-
-                w2 = math.ceil(float(weight))
-                cbm = math.ceil(w2 / 40) / 10
-                if cbm < sea_1_min:
-                    cbm = sea_1_min
-
-                if w1 > cbm:
-                    sea_1_price = (w1 - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
-                else:
-                    sea_1_price = (cbm - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
-
-                i.sea_1_price = sea_1_price
-
-                #################### SEA 2 SHIPPING
-
-                w1 = math.ceil(float(length) * float(width) * float(height) / sea_2_number)
-                w2 = math.ceil(float(weight))
-                if w1 < sea_2_min:
-                    w1 = sea_2_min
-                if w2 < sea_2_min:
-                    w2 = sea_2_min
-                if w1 > w2:
-                    sea_2_price = (w1 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
-                else:
-                    sea_2_price = (w2 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
-
-                i.sea_2_price = sea_2_price
-
-                i.save()
-
-
-
-        elif "/my_orders/" in request.path:
-            items = sold.objects.all().filter(order_status="NOT PAID", client_email=request.user.email)
-            for i in items:
-                data = {
-                    'billCode': i.bill_code,
-                    'billpaymentStatus': '0'
-                    }
-                try:
-                    req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                    if json.loads(req.text)[0]['billpaymentStatus'] == "1":
-                        i.order_status = "BUYING"
-                        i.save()
+                        hist = history.objects.create(
+                            client_email = i.client_email,
+                            value = i.price,
+                            notes = "Extra bill paid",
+                            in_out = 0,
+                        )
+                        hist.save()
                 except:
                     pass
 
 
-            items = sold.objects.all().filter(shipping_status="NOT PAID", client_email=request.user.email)
-            for i in items:
-                if i.shipping_bill != "":
-                    data = {
-                        'billCode': i.shipping_bill,
-                        'billpaymentStatus': '0'
+
+
+
+
+        elif "/my_orders" in request.path:
+            items = recharge_bills.objects.all().filter(bill_status="NOT PAID", client_email=request.user.email)
+
+            for item in items:
+                data = {
+                    'billCode': item.bill_code,
+                    'billpaymentStatus': '0'
                     }
-                    try:
-                        req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                        if json.loads(req.text)[0]['billpaymentStatus'] == "1":
-                            i.shipping_status = "NOT SHIPPED"
-                            i.save()
-                    except:
-                        pass
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                            item.bill_status = "PAID"
+                            item.save()
+                            walleti = wallet.objects.all().filter(client_email=item.client_email)[0]
+                            walleti.balance = walleti.balance + item.amount
+                            walleti.save()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = item.amount,
+                                notes = "Recharge from user",
+                                in_out = 1,
+                            )
+                            hist.save()
 
-            items = sold.objects.all().filter(~Q(length=0.0, width=0.0, height=0.0, weight=0.0), air_price=0.0, sea_1_price=0.0, sea_2_price=0.0, client_email=request.user.email)
+            items = order_bills.objects.all().filter(bill_status="NOT PAID", bill_code="balance", client_email=request.user.email)
+            for item in items:
+                item.bill_status = "PAID"
+                item.save()
+                product = cart.objects.all().filter(id=item.cart_id)[0]
+                str_id = str(request.user.id)
+                while len(str_id) < 6:
+                    str_id = "0" + str_id
+
+                product_buy = sold.objects.create(
+                    id_product = product.id_product,
+                    name = product.name,
+                    price = product.price,
+                    rmprice= product.rmprice,
+                    variant = product.variant,
+                    url = "/shopee/"+product.url,
+                    client_email= product.client_email,
+                    client_id= "MY"+str_id,
+                    quantity= product.quantity,
+                    extra_info = product.extra_info,
+                    bill_id = item.id
+                )
+                product_buy.save()
+                product.delete()
+                hist = history.objects.create(
+                    client_email = item.client_email,
+                    value = product.rmprice,
+                    notes = "Product purchase",
+                    in_out = 0,
+                )
+                hist.save()
+
+            items = shipping_bills.objects.all().filter(bill_status="NOT PAID", bill_code="balance", client_email=request.user.email)
+            for item in items:
+                item.bill_status = "PAID"
+                item.save()
+                product = shipping.objects.all().filter(sold_ids=item.product_ids)[0]
+                str_id = str(request.user.id)
+                while len(str_id) < 6:
+                    str_id = "0" + str_id
+                product.shipping_status = "NOT SHIPPED"
+                product.save()
+                hist = history.objects.create(
+                    client_email = item.client_email,
+                    value = product.shipping_price,
+                    notes = "Shipping paid",
+                    in_out = 0,
+                )
+                hist.save()
+
+
+
+            items = order_bills.objects.all().filter(bill_status="NOT PAID", client_email=request.user.email)
+            code_id = []
             for i in items:
+                if i.bill_code not in code_id:
+                    code_id.append(i.bill_code)
+            print(code_id)
+            for bill_code in code_id:
+                data = {
+                    'billCode': bill_code,
+                    'billpaymentStatus': '0'
+                    }
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                        items = order_bills.objects.all().filter(bill_code=bill_code, client_email=request.user.email)
+                        for item in items:
+                            item.bill_status = "PAID"
+                            item.save()
+                            product = cart.objects.all().filter(id=item.cart_id)[0]
+                            str_id = str(request.user.id)
+                            while len(str_id) < 6:
+                                str_id = "0" + str_id
 
-                configurations = calc_conf.objects.all()[0]
-                markup = configurations.markup / 100
-                singapore_rate = configurations.singapore_rate
-                singapore_sensitive_rate = configurations.singapore_sensitive_rate
-                brunel_rate = configurations.brunel_rate
-                brunel_sensitive_rate = configurations.brunel_sensitive_rate
-                malaysia1_rate = configurations.malaysia1_rate
-                malaysia1_sensitive_rate = configurations.malaysia1_sensitive_rate
-                malaysia2_rate = configurations.malaysia2_rate
-                malaysia2_sensitive_rate = configurations.malaysia2_sensitive_rate
-                convert_rate = configurations.convert_rate
-                air_number = configurations.air_number
-                sea_1_number = configurations.sea_1_number
-                sea_2_number = configurations.sea_2_number
-                sea_1_min = configurations.sea_1_min
-                sea_1_price_under_min = configurations.sea_1_price_under_min
-                sea_1_price_over_min = configurations.sea_1_price_over_min
-                sea_2_min = configurations.sea_2_min
-                sea_2_price_under_min = configurations.sea_2_price_under_min
-                sea_2_price_over_min = configurations.sea_2_price_over_min
-                country = i.shipping_country
-                if country == "Malaysia1":
-                    normal = malaysia1_rate
-                    sensitive = malaysia1_sensitive_rate
-                elif country == "Malaysia2":
-                    normal = malaysia2_rate
-                    sensitive = malaysia2_sensitive_rate
-                elif country == "Singapore":
-                    normal = singapore_rate
-                    sensitive = singapore_sensitive_rate
-                elif country == "Brunel":
-                    normal = brunel_rate
-                    sensitive = brunel_sensitive_rate
+                            product_buy = sold.objects.create(
+                                id_product = product.id_product,
+                                name = product.name,
+                                price = product.price,
+                                rmprice= product.rmprice,
+                                variant = product.variant,
+                                url = "/shopee/"+product.url,
+                                client_email= request.user.email,
+                                client_id= "MY"+str_id,
+                                quantity= product.quantity,
+                                extra_info = product.extra_info,
+                                bill_id = item.id
+                            )
+                            product_buy.save()
+                            product.delete()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = product.rmprice,
+                                notes = "Product purchase",
+                                in_out = 0,
+                            )
+                            hist.save()
 
-                #################### AIR SHIPPING
-
-                rate = i.shipping_rate
-                length = i.length
-                width = i.width
-                height = i.height
-                weight = i.weight
-                w1 = math.ceil(float(length) * float(width) * float(height) / air_number)
-                w2 = math.ceil(float(weight))
-                if rate == "Normal":
-                    rm = normal
-                elif rate == "Sensitive":
-                    rm = sensitive
-                if w1 > w2:
-                    air_price = w1 * rm + (w1 * rm * markup)
-                else:
-                    air_price = w2 * rm + (w2 * rm * markup)
-
-                i.air_price = air_price
-
-                #################### SEA SHIPPING
-
-                w1 = math.ceil(float(length) * float(width) * float(height) / sea_1_number) / 10
-                if w1 < sea_1_min:
-                    w1 = sea_1_min
+            items = shipping_bills.objects.all().filter(bill_status="NOT PAID", client_email=request.user.email)
+            code_id = []
+            for i in items:
+                if i.bill_code not in code_id:
+                    code_id.append(i.bill_code)
+            print(code_id)
 
 
-                w2 = math.ceil(float(weight))
-                cbm = math.ceil(w2 / 40) / 10
-                if cbm < sea_1_min:
-                    cbm = sea_1_min
+            for bill_code in code_id:
+                data = {
+                    'billCode': bill_code,
+                    'billpaymentStatus': '0'
+                    }
+                req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                print(req.text)
+                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                        items = shipping_bills.objects.all().filter(bill_code=bill_code)
+                        for item in items:
+                            item.bill_status = "PAID"
+                            item.save()
+                            product = shipping.objects.all().filter(sold_ids=item.product_ids)[0]
+                            str_id = str(request.user.id)
+                            while len(str_id) < 6:
+                                str_id = "0" + str_id
+                            product.shipping_status = "NOT SHIPPED"
+                            product.save()
+                            hist = history.objects.create(
+                                client_email = item.client_email,
+                                value = product.shipping_price,
+                                notes = "Shipping paid",
+                                in_out = 0,
+                            )
+                            hist.save()
 
-                if w1 > cbm:
-                    sea_1_price = (w1 - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
-                else:
-                    sea_1_price = (cbm - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
 
-                i.sea_1_price = sea_1_price
 
-                #################### SEA 2 SHIPPING
 
-                w1 = math.ceil(float(length) * float(width) * float(height) / sea_2_number)
-                w2 = math.ceil(float(weight))
-                if w1 < sea_2_min:
-                    w1 = sea_2_min
-                if w2 < sea_2_min:
-                    w2 = sea_2_min
-                if w1 > w2:
-                    sea_2_price = (w1 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
-                else:
-                    sea_2_price = (w2 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
+            items = new_bills.objects.all().filter(bill_status="NOT PAID", client_email=request.user.email)
+            for i in items:
+                print(i.bill_code)
+                data = {
+                    'billCode': i.bill_code,
+                    'billpaymentStatus': '0'
+                }
+                try:
+                    req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                    print(req.text)
+                    if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+                        i.bill_status = "PAID"
+                        i.save()
+                        hist = history.objects.create(
+                            client_email = i.client_email,
+                            value = i.price,
+                            notes = "Extra bill paid",
+                            in_out = 0,
+                        )
+                        hist.save()
+                except:
+                    pass
 
-                i.sea_2_price = sea_2_price
 
-                i.save()
+
+
+
+
+
+
+
+
+            # items = sold.objects.all().filter(shipping_status="NOT PAID", client_email=request.user.email)
+            # for i in items:
+            #     if i.shipping_bill != "":
+            #         data = {
+            #             'billCode': i.shipping_bill,
+            #             'billpaymentStatus': '0'
+            #         }
+            #         try:
+            #             req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+            #             if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+            #                 i.shipping_status = "NOT SHIPPED"
+            #                 i.save()
+            #         except:
+            #             pass
 
         response = self.get_response(request)
         return response
