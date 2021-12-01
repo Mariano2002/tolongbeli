@@ -20,6 +20,12 @@ from allauth.account.signals import user_signed_up
 from django.dispatch import receiver
 from django.conf import settings
 from .forms import *
+from datetime import datetime
+import sys
+import threading
+import time
+import logging
+
 
 def check_wallet(email):
     try:
@@ -61,7 +67,6 @@ def shop(request):
                 try:
                     return HttpResponseRedirect('tokopedia/%s/' % title.split("?")[0].split("tokopedia.com/")[1])
                 except:
-                    print("i")
                     headers = {
                         'Connection': 'keep-alive',
                         'sec-ch-ua': '"Chromium";v="94", "Google Chrome";v="94", ";Not A Brand";v="99"',
@@ -81,9 +86,7 @@ def shop(request):
                     return HttpResponseRedirect('tokopedia/%s/' % response.url.split("?")[0].split("tokopedia.com/")[1])
 
 
-        print(title)
         keyword = urllib.parse.quote(title)
-        print(keyword)
         headers = {
             'user-agent': "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.67 Safari/537.36",
             # 'cookie': cookie,
@@ -216,7 +219,7 @@ def product_page_shopee(request, item_description):
         'sec-fetch-site': 'same-origin',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://shopee.co.id/{item_description}',
+        'referer': f'https://shopee.co.id/{item_description}'.encode('cp1252'),
         'accept-language': 'en-US,en;q=0.9',
         'if-none-match': '1bdac07452c0da90a6d8e6e48af99a6d',
     }
@@ -295,7 +298,7 @@ def product_page_shopee(request, item_description):
 
 
     context_product_shopee = {   "id": product['itemid'],
-                                 "url": "https://shopee.co.id/"+item_description,
+                                 "url": f"https://shopee.co.id/{item_description}".encode('cp1252'),
                                  "name": product['name'],
                                  "images": product['images'],
                                  "image": "https://cf.shopee.co.id/file/"+product['image'],
@@ -336,7 +339,8 @@ def product_page_shopee(request, item_description):
 
 
 def product_page_tokopedia(request, item_description):
-    print("ketuuu")
+    global prods
+    import json
     def convert_price(price1):
         price_1 = price1[::-1]
         price_2 = ''
@@ -346,51 +350,19 @@ def product_page_tokopedia(request, item_description):
                 price_2 += '.'
             price_1 = price_1[3:]
         return price_2[::-1]
+    # options = Options()
+    # # options.add_argument('--headless')
+    # driver = selenium.webdriver.Chrome(options=options)
+    # driver.get("https://www.tokopedia.com/")
+    # # driver.get("https://www.tokopedia.com/jeantboutique/promo-baju-atasan-kemeja-blouse-valery-wanita-lengan-panjang-murah")
+    # # time.sleep(5)
+    # request_cookies_browser = driver.get_cookies()
+    # driver.quit()
+    # s = requests.Session()
+    # # passing the cookies generated from the browser to the session
+    # c = [s.cookies.set(c['name'], c['value']) for c in request_cookies_browser]
+    #
 
-    import json
-    headers = {
-            'authority': 'gql.tokopedia.com',
-            'sec-ch-ua': '^\\^Chromium^\\^;v=^\\^92^\\^, ^\\^',
-            'x-version': '27ca28b',
-            'sec-ch-ua-mobile': '?0',
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36',
-            'content-type': 'application/json',
-            'accept': '*/*',
-            'x-source': 'tokopedia-lite',
-            'x-device': 'desktop',
-            'x-tkpd-lite-service': 'zeus',
-            'x-tkpd-akamai': 'pdpGetLayout',
-            'origin': 'https://www.tokopedia.com',
-            'sec-fetch-site': 'same-site',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-dest': 'empty',
-            'referer': f'https://www.tokopedia.com/{item_description}',
-            'accept-language': 'en-US,en;q=0.9',
-            'cookie': '_UUID_NONLOGIN_=5b7c1de52fea48e89a910249466603ce; hfv_banner=true; DID=e5e96033e209bae99614e829d2cffae1adfb797d7c79c5d2d5c229559e3fe9f02fe82ec0bec6d1bec406da00656d2e81; DID_JS=ZTVlOTYwMzNlMjA5YmFlOTk2MTRlODI5ZDJjZmZhZTFhZGZiNzk3ZDdjNzljNWQyZDVjMjI5NTU5ZTNmZTlmMDJmZTgyZWMwYmVjNmQxYmVjNDA2ZGEwMDY1NmQyZTgx47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=; _gcl_au=1.1.819531658.1630065814; __auc=3d8e7d9317b877e7cdb86509d93; _jx=8133cb90-0731-11ec-badf-5db40e83e167; _fbp=fb.1.1630066980363.1866423534; RT=^\\^z=1&dm=tokopedia.com&si=4c09856f-224c-4b22-a7d5-63100921b85d&ss=kt0aa3oz&sl=1&tt=2a6&bcn=^%^2F^%^2F6852bd08.akstat.io^%^2F&nu=ehdzd6cbg&cl=2a4&ul=2a7&ld=2w6&hd=34o^\\^; _gid=GA1.2.231573036.1630548639; _SID_Tokopedia_=R5L8DvM23LNLDFYBKCF5VHPdlpEB0yN57WUf5tSQXQi5TCFXoJ7TL-RSzS5VgRlaoO3Of2toE1FSllgs5zsAdHjkUqfYk1tQIBA8k6fG0teB0pPo3fnStv9b6sbl1f8q; _CAS_=^%^7B^%^22dId^%^22^%^3A2166^%^2C^%^22aId^%^22^%^3A0^%^2C^%^22lbl^%^22^%^3A^%^22Andir^%^2C^%^20Kota^%^20Bandung^%^22^%^2C^%^22cId^%^22^%^3A165^%^2C^%^22long^%^22^%^3A^%^22^%^22^%^2C^%^22lat^%^22^%^3A^%^22^%^22^%^2C^%^22pCo^%^22^%^3A^%^22^%^22^%^2C^%^22wId^%^22^%^3A0^%^2C^%^22sId^%^22^%^3A11530573^%^7D; cto_bundle=SRmsh19vYllOSU8lMkYyR213NkZxJTJGeG9qMjlzTTg3OGlmZWZEbkpQMm8lMkJTdENkQW9hNnkyS3FFVzlXJTJGbjd5dE1IMjFHdEhqbzlrWnpoJTJGZDZsSlBKdFFoaEklMkJjYyUyRkk4NlhBeE5GVGhHMEZGbFRMaVRBMXVxV3JIZUc1NUlKRkNDRm9VdWYxU1NTVzFvS2NCaE1tellvOE50RGVYZyUzRCUzRA; _abck=CA8D568F68E76DD9EF69D38117C8DC19~0~YAAQ3fvOF7ZqGJt7AQAAOhDypwbJkmjGh2+PU+HCbVWXY71AKl2e4F8eauGwBJL38OJA2Ou4Kh4GU4Iwi6Oa46nj6uXrzQuV7yHXmsfZ8zSTluYOssiW5zWF3vfRkplr2dPrlxo4HEVT4Hgs+Ez2FVrbDRWmo2q+1P/RZh/e8lUwwZHxgBJiMoowhSu+eJ2bx/0rzhSeSMeMWYk6xqMDIqdQVsryF2iEc7T27/DXxnd+8JmPwb9IoMj11YY9NI5GE2qUfu9CJnlRDlRgSCv2mm1UswjyO1CKMBnUBlB6o+Dej5jr8vS4Cz9FyYgoitSCRhaOqbYyc4/k5bTANxNK9JhcTZMJz/a9u0b+sLjZgsdv3TrTsfNK604Ri7BYn9UL8PxL1X1ImzUpyT1UPaPn2Ly6X/mqPhOr6ZhU~-1~-1~-1; bm_sz=DA74DEF785268CAE6E5F42255B4CD658~YAAQ3fvOF7dqGJt7AQAAOxDypwyXRBiGh11xlHfDhm2htPMbRre3ymWXh98mk6t0RK+Cu/0BH2QXCaio4NB9SCDDzNAaL5o0oo3kEuxd7JQhWQLgyRl3e1lJKaaa9z9Go2AfIm9lJD2BQLoha8n8OFiEFC1yOOpd9OXFU9Tzlj3yvJllFvO1bmxoG6DJ2IwNbCmCdSrCfopSa94erKbag/l+chwPlVfOZ8FTCU28g8EEJjmIO4O4Y7/hr2mzzTHTdC+uBAueWZk1DTtDPwfETWcD8gQ3Zumd5rDFt84y7A+k23o4RPc=~4277571~3682610; _ga=GA1.2.817567506.1630065815; _dc_gtm_UA-9801603-1=1; _dc_gtm_UA-126956641-6=1; AMP_TOKEN=^%^24NOT_FOUND; _ga_70947XW48P=GS1.1.1630610265.12.0.1630610266.59',
-        }
-    shopDomain = item_description.split("/")[0]
-    productKey = item_description.split("/")[1]
-    payload = [
-            {
-                "operationName": "PDPGetLayoutQuery",
-                "variables": {
-                    "shopDomain": shopDomain,
-                    "productKey": productKey,
-                    "layoutID": "",
-                    "apiVersion": 1,
-                    "userLocation": {
-                        "addressID": "0",
-                        "districtID": "2166",
-                        "postalCode": "",
-                        "latlon": ""
-                    }
-                },
-                "query": "fragment ProductVariant on pdpDataProductVariant {\n  errorCode\n  parentID\n  defaultChild\n  sizeChart\n  variants {\n    productVariantID\n    variantID\n    name\n    identifier\n    option {\n      picture {\n        urlOriginal: url\n        urlThumbnail: url100\n        __typename\n      }\n      productVariantOptionID\n      variantUnitValueID\n      value\n      hex\n      __typename\n    }\n    __typename\n  }\n  children {\n    productID\n    price\n    priceFmt\n    optionID\n    productName\n    productURL\n    picture {\n      urlOriginal: url\n      urlThumbnail: url100\n      __typename\n    }\n    stock {\n      stock\n      isBuyable\n      stockWording\n      stockWordingHTML\n      minimumOrder\n      maximumOrder\n      __typename\n    }\n    isCOD\n    isWishlist\n    campaignInfo {\n      campaignID\n      campaignType\n      campaignTypeName\n      campaignIdentifier\n      background\n      discountPercentage\n      originalPrice\n      discountPrice\n      stock\n      stockSoldPercentage\n      threshold\n      startDate\n      endDate\n      endDateUnix\n      appLinks\n      isAppsOnly\n      isActive\n      hideGimmick\n      isCheckImei\n      __typename\n    }\n    thematicCampaign {\n      additionalInfo\n      background\n      campaignName\n      icon\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment ProductMedia on pdpDataProductMedia {\n  media {\n    type\n    urlThumbnail: URLThumbnail\n    videoUrl: videoURLAndroid\n    prefix\n    suffix\n    description\n    __typename\n  }\n  videos {\n    source\n    url\n    __typename\n  }\n  __typename\n}\n\nfragment ProductHighlight on pdpDataProductContent {\n  name\n  price {\n    value\n    currency\n    __typename\n  }\n  campaign {\n    campaignID\n    campaignType\n    campaignTypeName\n    campaignIdentifier\n    background\n    percentageAmount\n    originalPrice\n    discountedPrice\n    originalStock\n    stock\n    stockSoldPercentage\n    threshold\n    startDate\n    endDate\n    endDateUnix\n    appLinks\n    isAppsOnly\n    isActive\n    hideGimmick\n    __typename\n  }\n  thematicCampaign {\n    additionalInfo\n    background\n    campaignName\n    icon\n    __typename\n  }\n  stock {\n    useStock\n    value\n    stockWording\n    __typename\n  }\n  variant {\n    isVariant\n    parentID\n    __typename\n  }\n  wholesale {\n    minQty\n    price {\n      value\n      currency\n      __typename\n    }\n    __typename\n  }\n  isCashback {\n    percentage\n    __typename\n  }\n  isTradeIn\n  isOS\n  isPowerMerchant\n  isWishlist\n  isCOD\n  isFreeOngkir {\n    isActive\n    __typename\n  }\n  preorder {\n    duration\n    timeUnit\n    isActive\n    preorderInDays\n    __typename\n  }\n  __typename\n}\n\nfragment ProductCustomInfo on pdpDataCustomInfo {\n  icon\n  title\n  isApplink\n  applink\n  separator\n  description\n  __typename\n}\n\nfragment ProductInfo on pdpDataProductInfo {\n  row\n  content {\n    title\n    subtitle\n    applink\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDetail on pdpDataProductDetail {\n  content {\n    title\n    subtitle\n    applink\n    showAtFront\n    isAnnotation\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDataInfo on pdpDataInfo {\n  icon\n  title\n  isApplink\n  applink\n  content {\n    icon\n    text\n    __typename\n  }\n  __typename\n}\n\nfragment ProductSocial on pdpDataSocialProof {\n  row\n  content {\n    icon\n    title\n    subtitle\n    applink\n    type\n    rating\n    __typename\n  }\n  __typename\n}\n\nquery PDPGetLayoutQuery($shopDomain: String, $productKey: String, $layoutID: String, $apiVersion: Float, $userLocation: pdpUserLocation!) {\n  pdpGetLayout(shopDomain: $shopDomain, productKey: $productKey, layoutID: $layoutID, apiVersion: $apiVersion, userLocation: $userLocation) {\n    name\n    pdpSession\n    basicInfo {\n      alias\n      id: productID\n      shopID\n      shopName\n      minOrder\n      maxOrder\n      weight\n      weightUnit\n      condition\n      status\n      url\n      needPrescription\n      catalogID\n      isLeasing\n      isBlacklisted\n      menu {\n        id\n        name\n        url\n        __typename\n      }\n      category {\n        id\n        name\n        title\n        breadcrumbURL\n        isAdult\n        detail {\n          id\n          name\n          breadcrumbURL\n          isAdult\n          __typename\n        }\n        __typename\n      }\n      blacklistMessage {\n        title\n        description\n        button\n        url\n        __typename\n      }\n      txStats {\n        transactionSuccess\n        transactionReject\n        countSold\n        paymentVerified\n        itemSoldPaymentVerified\n        __typename\n      }\n      stats {\n        countView\n        countReview\n        countTalk\n        rating\n        __typename\n      }\n      __typename\n    }\n    components {\n      name\n      type\n      position\n      data {\n        ...ProductMedia\n        ...ProductHighlight\n        ...ProductInfo\n        ...ProductDetail\n        ...ProductSocial\n        ...ProductDataInfo\n        ...ProductCustomInfo\n        ...ProductVariant\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
-            }
-        ]
-
-    api_key = "jJcauPNv4W2rg75x3tHGsbVqZAyLCpEY"
-    proxy_url = "http://falcon.proxyrotator.com:51337/?apiKey={}&userAgent=true&get=true".format(api_key)
 
     def getProxy():
         try:
@@ -400,22 +372,237 @@ def product_page_tokopedia(request, item_description):
             return js['proxy']
         except Exception as e:
             pass
-    while True:
+
+    api_key = "jJcauPNv4W2rg75x3tHGsbVqZAyLCpEY"
+    proxy_url = "http://falcon.proxyrotator.com:51337/?apiKey={}&userAgent=true&get=true".format(api_key)
+
+    prods = ""
+
+    class StoppableThread(threading.Thread):
+        """Thread class with a stop() method. The thread itself has to check
+        regularly for the stopped() condition."""
+
+        def __init__(self):
+            super(StoppableThread, self).__init__()
+            self._stopper = threading.Event()  # ! must not use _stop
+
+        def stopit(self):  # (avoid confusion)
+            self._stopper.set()  # ! must not use _stop
+
+        def stopped(self):
+            return self._stopper.is_set()  # ! must not use _stop
+
+    class datalogger(StoppableThread):
+        """
+        """
+
+        import time
+
+        def __init__(self, outfile):
+            """
+            """
+            StoppableThread.__init__(self)
+            self.outfile = outfile
+
+        def run(self):
+            global prods
+
+            while not self.stopped():
+                try:
+                    headers = {
+                        'authority': 'gql.tokopedia.com',
+                        'sec-ch-ua': '^\\^Chromium^\\^;v=^\\^92^\\^, ^\\^',
+                        'x-version': '27ca28b',
+                        'sec-ch-ua-mobile': '?0',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36',
+                        'content-type': 'application/json',
+                        'accept': '*/*',
+                        'x-source': 'tokopedia-lite',
+                        'x-device': 'desktop',
+                        'x-tkpd-lite-service': 'zeus',
+                        'x-tkpd-akamai': 'pdpGetLayout',
+                        'origin': 'https://www.tokopedia.com',
+                        'sec-fetch-site': 'same-site',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
+                        'accept-language': 'en-US,en;q=0.9',
+                    }
+                    s = requests.Session()
+                    # proxy = getProxy()
+                    # proxies = {'https': 'https://' + proxy}
+
+                    req = s.get("https://www.tokopedia.com/{item_description}".encode('cp1252'),
+                        headers=headers,
+                        # proxies=proxies,
+                        timeout=5)
+
+
+                    cookies = ""
+                    for c in s.cookies.get_dict():
+                        cookies = cookies + c + "=" + s.cookies.get_dict()[c] + "; "
+
+                    shopDomain = item_description.split("/")[0]
+                    productKey = item_description.split("/")[1]
+                    payload = [
+                        {
+                            "operationName": "PDPGetLayoutQuery",
+                            "variables": {
+                                "shopDomain": shopDomain,
+                                "productKey": productKey,
+                                "layoutID": "",
+                                "apiVersion": 1,
+                                "userLocation": {
+                                    "addressID": "0",
+                                    "districtID": "2166",
+                                    "postalCode": "",
+                                    "latlon": ""
+                                }
+                            },
+                            "query": "fragment ProductVariant on pdpDataProductVariant {\n  errorCode\n  parentID\n  defaultChild\n  sizeChart\n  variants {\n    productVariantID\n    variantID\n    name\n    identifier\n    option {\n      picture {\n        urlOriginal: url\n        urlThumbnail: url100\n        __typename\n      }\n      productVariantOptionID\n      variantUnitValueID\n      value\n      hex\n      __typename\n    }\n    __typename\n  }\n  children {\n    productID\n    price\n    priceFmt\n    optionID\n    productName\n    productURL\n    picture {\n      urlOriginal: url\n      urlThumbnail: url100\n      __typename\n    }\n    stock {\n      stock\n      isBuyable\n      stockWording\n      stockWordingHTML\n      minimumOrder\n      maximumOrder\n      __typename\n    }\n    isCOD\n    isWishlist\n    campaignInfo {\n      campaignID\n      campaignType\n      campaignTypeName\n      campaignIdentifier\n      background\n      discountPercentage\n      originalPrice\n      discountPrice\n      stock\n      stockSoldPercentage\n      threshold\n      startDate\n      endDate\n      endDateUnix\n      appLinks\n      isAppsOnly\n      isActive\n      hideGimmick\n      isCheckImei\n      __typename\n    }\n    thematicCampaign {\n      additionalInfo\n      background\n      campaignName\n      icon\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment ProductMedia on pdpDataProductMedia {\n  media {\n    type\n    urlThumbnail: URLThumbnail\n    videoUrl: videoURLAndroid\n    prefix\n    suffix\n    description\n    __typename\n  }\n  videos {\n    source\n    url\n    __typename\n  }\n  __typename\n}\n\nfragment ProductHighlight on pdpDataProductContent {\n  name\n  price {\n    value\n    currency\n    __typename\n  }\n  campaign {\n    campaignID\n    campaignType\n    campaignTypeName\n    campaignIdentifier\n    background\n    percentageAmount\n    originalPrice\n    discountedPrice\n    originalStock\n    stock\n    stockSoldPercentage\n    threshold\n    startDate\n    endDate\n    endDateUnix\n    appLinks\n    isAppsOnly\n    isActive\n    hideGimmick\n    __typename\n  }\n  thematicCampaign {\n    additionalInfo\n    background\n    campaignName\n    icon\n    __typename\n  }\n  stock {\n    useStock\n    value\n    stockWording\n    __typename\n  }\n  variant {\n    isVariant\n    parentID\n    __typename\n  }\n  wholesale {\n    minQty\n    price {\n      value\n      currency\n      __typename\n    }\n    __typename\n  }\n  isCashback {\n    percentage\n    __typename\n  }\n  isTradeIn\n  isOS\n  isPowerMerchant\n  isWishlist\n  isCOD\n  isFreeOngkir {\n    isActive\n    __typename\n  }\n  preorder {\n    duration\n    timeUnit\n    isActive\n    preorderInDays\n    __typename\n  }\n  __typename\n}\n\nfragment ProductCustomInfo on pdpDataCustomInfo {\n  icon\n  title\n  isApplink\n  applink\n  separator\n  description\n  __typename\n}\n\nfragment ProductInfo on pdpDataProductInfo {\n  row\n  content {\n    title\n    subtitle\n    applink\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDetail on pdpDataProductDetail {\n  content {\n    title\n    subtitle\n    applink\n    showAtFront\n    isAnnotation\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDataInfo on pdpDataInfo {\n  icon\n  title\n  isApplink\n  applink\n  content {\n    icon\n    text\n    __typename\n  }\n  __typename\n}\n\nfragment ProductSocial on pdpDataSocialProof {\n  row\n  content {\n    icon\n    title\n    subtitle\n    applink\n    type\n    rating\n    __typename\n  }\n  __typename\n}\n\nquery PDPGetLayoutQuery($shopDomain: String, $productKey: String, $layoutID: String, $apiVersion: Float, $userLocation: pdpUserLocation!) {\n  pdpGetLayout(shopDomain: $shopDomain, productKey: $productKey, layoutID: $layoutID, apiVersion: $apiVersion, userLocation: $userLocation) {\n    name\n    pdpSession\n    basicInfo {\n      alias\n      id: productID\n      shopID\n      shopName\n      minOrder\n      maxOrder\n      weight\n      weightUnit\n      condition\n      status\n      url\n      needPrescription\n      catalogID\n      isLeasing\n      isBlacklisted\n      menu {\n        id\n        name\n        url\n        __typename\n      }\n      category {\n        id\n        name\n        title\n        breadcrumbURL\n        isAdult\n        detail {\n          id\n          name\n          breadcrumbURL\n          isAdult\n          __typename\n        }\n        __typename\n      }\n      blacklistMessage {\n        title\n        description\n        button\n        url\n        __typename\n      }\n      txStats {\n        transactionSuccess\n        transactionReject\n        countSold\n        paymentVerified\n        itemSoldPaymentVerified\n        __typename\n      }\n      stats {\n        countView\n        countReview\n        countTalk\n        rating\n        __typename\n      }\n      __typename\n    }\n    components {\n      name\n      type\n      position\n      data {\n        ...ProductMedia\n        ...ProductHighlight\n        ...ProductInfo\n        ...ProductDetail\n        ...ProductSocial\n        ...ProductDataInfo\n        ...ProductCustomInfo\n        ...ProductVariant\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+                        }
+                    ]
+                    data = json.dumps(payload)
+
+                    headers = {
+                        'authority': 'gql.tokopedia.com',
+                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+                        'content-type': 'application/json',
+                        'accept': '*/*',
+                        'x-source': 'tokopedia-lite',
+                        'x-device': 'desktop',
+                        'x-tkpd-lite-service': 'zeus',
+                        'x-tkpd-akamai': 'pdpGetLayout',
+                        'sec-gpc': '1',
+                        'sec-fetch-site': 'same-site',
+                        'sec-fetch-mode': 'cors',
+                        'sec-fetch-dest': 'empty',
+                        'accept-language': 'en-US,en;q=0.9',
+                        # 'cookie': '_UUID_NONLOGIN_=f27a4fbb262751e7f59cedf8dc20b920; _UUID_NONLOGIN_.sig=Hp9ftFod1XGVPNEK3WDmqDWE5q0; DID=8f0b5ee08e63d5cb01508be397b525c65bcd51c937be8234c059aa99f503354617e297c8fc05e9f1fb2295013657811f; DID_JS=OGYwYjVlZTA4ZTYzZDVjYjAxNTA4YmUzOTdiNTI1YzY1YmNkNTFjOTM3YmU4MjM0YzA1OWFhOTlmNTAzMzU0NjE3ZTI5N2M4ZmMwNWU5ZjFmYjIyOTUwMTM2NTc4MTFm47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=; bm_sz=F9145F22A84092AE45098162BE41E752~YAAQyxXfrQ6Bw299AQAANENQcw0lHAlP/a4QIoJU/lXcUsu6EHSuzGHjOM+PmG58gk10toRJx4msMpBA0tzo06HCHrIIa7atASFzlh+KHgPDWqak/++5RtNeO1CXqixDgC9CWrBsP4fYVJrkhFa5PJhQm7aSytbzMrHI7MFl+i1pQsDAV//YBO+rEOW/9SrsWKhAKwLsr0Vv1TvZSZIrtbE8DWnvTZUjjVE8+/nXV3NcRtd+RA8KBerOAGUV3V/oxs40Dd2gM/2ELaARDMFCMT73DRi4LgezL+K5KnDfSSsqI2qLMbQ=~3553590~3553605; ak_bmsc=2BBDE757975D4CF99A09EA1AD2C0DFC4~000000000000000000000000000000~YAAQyxXfrRKBw299AQAABUhQcw1GryNoOdTWDnzQ4l4lUsbLOHmnRHq1nQlFy853A4eflrcZ8GRNEQw0foAbbL/VHnDITJctNzyzJykPESU9NkZI50QO4fQsMQHKo88T3cu2woTfFA4wzOmhVD5CgX64/wmDMZ9akNSn9B2kZe5CGVrRglt1fdYmvUqszRvuTFWDiuRjR01qFEuM7c2cJsFfYOJzcvIZSp09VJgR0DeT46afu/mYgUWjj+dL3PtLSDutR2OV5omUuwwpBn0Br0Ctb1/LE7mnX3Q691gwQwoqK8BnaijqvW/4R7bjs1HFziwL4bmjxc+NAhP7UB23f1ZDkzLcxvdlYH4OuGZ2UpDcoTgC29MZrujJoOstfiBU0iUPlyArQZUP4n4=; _SID_Tokopedia_=6urEQcgCufTbcWGpI0cenOH09URIJ2UVPaSj5ZzekBjBjnIwbphisip2GWjHJqwIaNPigHfMloug2FQzdA7KPw8DViiglzNB6tXOyAr-6qI5DUG0nNBM25Ex06-mfb2G; bm_mi=D79F8510FAC49A3D10EDBAD68A5BB773~3KijlFBSRlacbn5kji77g0IhUjcVk5yzG4p3363nDAj+bjI5GsDJJjNS129U+Uca/ElkjQXFbrbxoqMoJawWslkyHz/G4GBK2w5+PZhFIzJhE1ISWHiMTykeWGnANtD15ipjyxDwFHbPqiimfMFhegFz/w5TSinlD6goC8hyI/ZODj8CSzvMg4Kstd0uZJ/fhd+7MPHdIy7gwM0qfGf7wbKkXA+fXaoOnj4ofMcmhNjtYHOEmPdsq+OlSZPBDk7Izk2a4pd2K9xQOISqp9D3h5e2ggu07FjN90mwAPZQzCUbd9VZT17DD2Ez8i04p8fl9U7lJUhym5baY4QK/q42AA==; bm_sv=3C1C919EF5958BA72D073627E7C76C64~CwDH6TXXmBNzH2A0W9m5ryAIzii7pZYUfiUkAEIBoWJmNtBtxzgLeu3WzmsredzMOZPBejM8VCmOR+zJyNT05ikK8QGZ7tXgiG8beB8DA3Xk1iDw1evp1XF0tiLeAXR/ULCBsc4XKXlzzv10MZgCZ+5u5asNqUwCzol2BsEqWRw=; _CAS_={"dId":2274,"aId":0,"lbl":"Jakarta Pusat","cId":176,"long":"","lat":"","pCo":"","wId":12210375,"sId":11530573}; _abck=0606DF49F4D1546D546D50EC3EA27A65~0~YAAQzRXfrSudsjJ9AQAAXh9bcwaY1aAc2sWbjUB7RlpY9ywwofQRkUqt0cSUQaC/7X6AUR3ailJJlxajA0q+DHX09B5kSB/+URG+wKZlg5prYD9JjvnLJNbETmirl0xa0RaoRN+eu2L5Y9TmA/U0mFJgO1+M8cpo38uD6bSMieVWzOKjvlr62Mz54gKlmBefqguV72suk0rOSZnGHaL6HWqm3a++q0iHhmv8aNpmfoB9ECz/3JW1PHtbdq/K2sM5VvbNEH9v3Dk6zA3zfrZDMjKIlHSz/lbVvy7DL/lDstk7fj8FwHs2YhsFqasq/yjbUW1BUSweSt1qvlTOU8keElGjcWZpYrb4buQsESvonNXxNEdzKCq8hq9GJc1Bx1xJ0yH8tV/+cziVZLEfCGH4FmEjiv/P/vPVTLbG~-1~-1~-1; hfv_banner=true',
+
+                        'cookie': cookies,
+                    }
+                    # while True:
+                    # try:
+                    #     proxy = getProxy()
+                    #     break
+                    # except:
+                    #     pass
+
+                    # proxies = {'https': 'https://'+proxy}
+                    if self.stopped():
+                        break
+
+                    res = requests.post('https://gql.tokopedia.com/', headers=headers, data=data, timeout=2)
+                    prods = res.text
+
+                except:
+                    pass
+
+    threads = []
+    for i in range(0, 10):
+        test = datalogger("test.txt")
+        threads.append(test)
+        test.start()
+    while prods == "":
+        pass
+    for i in threads:
+        i.stopit()
+
+    '''while True:
         try:
-            proxy = getProxy()
+            headers = {
+                'authority': 'gql.tokopedia.com',
+                'sec-ch-ua': '^\\^Chromium^\\^;v=^\\^92^\\^, ^\\^',
+                'x-version': '27ca28b',
+                'sec-ch-ua-mobile': '?0',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36',
+                'content-type': 'application/json',
+                'accept': '*/*',
+                'x-source': 'tokopedia-lite',
+                'x-device': 'desktop',
+                'x-tkpd-lite-service': 'zeus',
+                'x-tkpd-akamai': 'pdpGetLayout',
+                'origin': 'https://www.tokopedia.com',
+                'sec-fetch-site': 'same-site',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-dest': 'empty',
+                'referer': f'https://www.tokopedia.com/' + item_description,
+                'accept-language': 'en-US,en;q=0.9',
+            }
+
+            s = requests.Session()
+            # proxy = getProxy()
+            # proxies = {'https': 'https://' + proxy}
+            req = s.get(
+                "https://www.tokopedia.com/"+item_description,
+                headers=headers,
+                # proxies=proxies,
+                timeout=5)
+
+            cookies = ""
+            for c in s.cookies.get_dict():
+                cookies = cookies + c + "=" + s.cookies.get_dict()[c] + "; "
+
+
+
+            shopDomain = item_description.split("/")[0]
+            productKey = item_description.split("/")[1]
+            payload = [
+                    {
+                        "operationName": "PDPGetLayoutQuery",
+                        "variables": {
+                            "shopDomain": shopDomain,
+                            "productKey": productKey,
+                            "layoutID": "",
+                            "apiVersion": 1,
+                            "userLocation": {
+                                "addressID": "0",
+                                "districtID": "2166",
+                                "postalCode": "",
+                                "latlon": ""
+                            }
+                        },
+                        "query": "fragment ProductVariant on pdpDataProductVariant {\n  errorCode\n  parentID\n  defaultChild\n  sizeChart\n  variants {\n    productVariantID\n    variantID\n    name\n    identifier\n    option {\n      picture {\n        urlOriginal: url\n        urlThumbnail: url100\n        __typename\n      }\n      productVariantOptionID\n      variantUnitValueID\n      value\n      hex\n      __typename\n    }\n    __typename\n  }\n  children {\n    productID\n    price\n    priceFmt\n    optionID\n    productName\n    productURL\n    picture {\n      urlOriginal: url\n      urlThumbnail: url100\n      __typename\n    }\n    stock {\n      stock\n      isBuyable\n      stockWording\n      stockWordingHTML\n      minimumOrder\n      maximumOrder\n      __typename\n    }\n    isCOD\n    isWishlist\n    campaignInfo {\n      campaignID\n      campaignType\n      campaignTypeName\n      campaignIdentifier\n      background\n      discountPercentage\n      originalPrice\n      discountPrice\n      stock\n      stockSoldPercentage\n      threshold\n      startDate\n      endDate\n      endDateUnix\n      appLinks\n      isAppsOnly\n      isActive\n      hideGimmick\n      isCheckImei\n      __typename\n    }\n    thematicCampaign {\n      additionalInfo\n      background\n      campaignName\n      icon\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment ProductMedia on pdpDataProductMedia {\n  media {\n    type\n    urlThumbnail: URLThumbnail\n    videoUrl: videoURLAndroid\n    prefix\n    suffix\n    description\n    __typename\n  }\n  videos {\n    source\n    url\n    __typename\n  }\n  __typename\n}\n\nfragment ProductHighlight on pdpDataProductContent {\n  name\n  price {\n    value\n    currency\n    __typename\n  }\n  campaign {\n    campaignID\n    campaignType\n    campaignTypeName\n    campaignIdentifier\n    background\n    percentageAmount\n    originalPrice\n    discountedPrice\n    originalStock\n    stock\n    stockSoldPercentage\n    threshold\n    startDate\n    endDate\n    endDateUnix\n    appLinks\n    isAppsOnly\n    isActive\n    hideGimmick\n    __typename\n  }\n  thematicCampaign {\n    additionalInfo\n    background\n    campaignName\n    icon\n    __typename\n  }\n  stock {\n    useStock\n    value\n    stockWording\n    __typename\n  }\n  variant {\n    isVariant\n    parentID\n    __typename\n  }\n  wholesale {\n    minQty\n    price {\n      value\n      currency\n      __typename\n    }\n    __typename\n  }\n  isCashback {\n    percentage\n    __typename\n  }\n  isTradeIn\n  isOS\n  isPowerMerchant\n  isWishlist\n  isCOD\n  isFreeOngkir {\n    isActive\n    __typename\n  }\n  preorder {\n    duration\n    timeUnit\n    isActive\n    preorderInDays\n    __typename\n  }\n  __typename\n}\n\nfragment ProductCustomInfo on pdpDataCustomInfo {\n  icon\n  title\n  isApplink\n  applink\n  separator\n  description\n  __typename\n}\n\nfragment ProductInfo on pdpDataProductInfo {\n  row\n  content {\n    title\n    subtitle\n    applink\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDetail on pdpDataProductDetail {\n  content {\n    title\n    subtitle\n    applink\n    showAtFront\n    isAnnotation\n    __typename\n  }\n  __typename\n}\n\nfragment ProductDataInfo on pdpDataInfo {\n  icon\n  title\n  isApplink\n  applink\n  content {\n    icon\n    text\n    __typename\n  }\n  __typename\n}\n\nfragment ProductSocial on pdpDataSocialProof {\n  row\n  content {\n    icon\n    title\n    subtitle\n    applink\n    type\n    rating\n    __typename\n  }\n  __typename\n}\n\nquery PDPGetLayoutQuery($shopDomain: String, $productKey: String, $layoutID: String, $apiVersion: Float, $userLocation: pdpUserLocation!) {\n  pdpGetLayout(shopDomain: $shopDomain, productKey: $productKey, layoutID: $layoutID, apiVersion: $apiVersion, userLocation: $userLocation) {\n    name\n    pdpSession\n    basicInfo {\n      alias\n      id: productID\n      shopID\n      shopName\n      minOrder\n      maxOrder\n      weight\n      weightUnit\n      condition\n      status\n      url\n      needPrescription\n      catalogID\n      isLeasing\n      isBlacklisted\n      menu {\n        id\n        name\n        url\n        __typename\n      }\n      category {\n        id\n        name\n        title\n        breadcrumbURL\n        isAdult\n        detail {\n          id\n          name\n          breadcrumbURL\n          isAdult\n          __typename\n        }\n        __typename\n      }\n      blacklistMessage {\n        title\n        description\n        button\n        url\n        __typename\n      }\n      txStats {\n        transactionSuccess\n        transactionReject\n        countSold\n        paymentVerified\n        itemSoldPaymentVerified\n        __typename\n      }\n      stats {\n        countView\n        countReview\n        countTalk\n        rating\n        __typename\n      }\n      __typename\n    }\n    components {\n      name\n      type\n      position\n      data {\n        ...ProductMedia\n        ...ProductHighlight\n        ...ProductInfo\n        ...ProductDetail\n        ...ProductSocial\n        ...ProductDataInfo\n        ...ProductCustomInfo\n        ...ProductVariant\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+                    }
+                ]
+            data = json.dumps(payload)
+
+            headers = {
+                'authority': 'gql.tokopedia.com',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36',
+                'content-type': 'application/json',
+                'accept': '*/*',
+                'x-source': 'tokopedia-lite',
+                'x-device': 'desktop',
+                'x-tkpd-lite-service': 'zeus',
+                'x-tkpd-akamai': 'pdpGetLayout',
+                'sec-gpc': '1',
+                'sec-fetch-site': 'same-site',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-dest': 'empty',
+                'accept-language': 'en-US,en;q=0.9',
+                # 'cookie': '_UUID_NONLOGIN_=f27a4fbb262751e7f59cedf8dc20b920; _UUID_NONLOGIN_.sig=Hp9ftFod1XGVPNEK3WDmqDWE5q0; DID=8f0b5ee08e63d5cb01508be397b525c65bcd51c937be8234c059aa99f503354617e297c8fc05e9f1fb2295013657811f; DID_JS=OGYwYjVlZTA4ZTYzZDVjYjAxNTA4YmUzOTdiNTI1YzY1YmNkNTFjOTM3YmU4MjM0YzA1OWFhOTlmNTAzMzU0NjE3ZTI5N2M4ZmMwNWU5ZjFmYjIyOTUwMTM2NTc4MTFm47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=; bm_sz=F9145F22A84092AE45098162BE41E752~YAAQyxXfrQ6Bw299AQAANENQcw0lHAlP/a4QIoJU/lXcUsu6EHSuzGHjOM+PmG58gk10toRJx4msMpBA0tzo06HCHrIIa7atASFzlh+KHgPDWqak/++5RtNeO1CXqixDgC9CWrBsP4fYVJrkhFa5PJhQm7aSytbzMrHI7MFl+i1pQsDAV//YBO+rEOW/9SrsWKhAKwLsr0Vv1TvZSZIrtbE8DWnvTZUjjVE8+/nXV3NcRtd+RA8KBerOAGUV3V/oxs40Dd2gM/2ELaARDMFCMT73DRi4LgezL+K5KnDfSSsqI2qLMbQ=~3553590~3553605; ak_bmsc=2BBDE757975D4CF99A09EA1AD2C0DFC4~000000000000000000000000000000~YAAQyxXfrRKBw299AQAABUhQcw1GryNoOdTWDnzQ4l4lUsbLOHmnRHq1nQlFy853A4eflrcZ8GRNEQw0foAbbL/VHnDITJctNzyzJykPESU9NkZI50QO4fQsMQHKo88T3cu2woTfFA4wzOmhVD5CgX64/wmDMZ9akNSn9B2kZe5CGVrRglt1fdYmvUqszRvuTFWDiuRjR01qFEuM7c2cJsFfYOJzcvIZSp09VJgR0DeT46afu/mYgUWjj+dL3PtLSDutR2OV5omUuwwpBn0Br0Ctb1/LE7mnX3Q691gwQwoqK8BnaijqvW/4R7bjs1HFziwL4bmjxc+NAhP7UB23f1ZDkzLcxvdlYH4OuGZ2UpDcoTgC29MZrujJoOstfiBU0iUPlyArQZUP4n4=; _SID_Tokopedia_=6urEQcgCufTbcWGpI0cenOH09URIJ2UVPaSj5ZzekBjBjnIwbphisip2GWjHJqwIaNPigHfMloug2FQzdA7KPw8DViiglzNB6tXOyAr-6qI5DUG0nNBM25Ex06-mfb2G; bm_mi=D79F8510FAC49A3D10EDBAD68A5BB773~3KijlFBSRlacbn5kji77g0IhUjcVk5yzG4p3363nDAj+bjI5GsDJJjNS129U+Uca/ElkjQXFbrbxoqMoJawWslkyHz/G4GBK2w5+PZhFIzJhE1ISWHiMTykeWGnANtD15ipjyxDwFHbPqiimfMFhegFz/w5TSinlD6goC8hyI/ZODj8CSzvMg4Kstd0uZJ/fhd+7MPHdIy7gwM0qfGf7wbKkXA+fXaoOnj4ofMcmhNjtYHOEmPdsq+OlSZPBDk7Izk2a4pd2K9xQOISqp9D3h5e2ggu07FjN90mwAPZQzCUbd9VZT17DD2Ez8i04p8fl9U7lJUhym5baY4QK/q42AA==; bm_sv=3C1C919EF5958BA72D073627E7C76C64~CwDH6TXXmBNzH2A0W9m5ryAIzii7pZYUfiUkAEIBoWJmNtBtxzgLeu3WzmsredzMOZPBejM8VCmOR+zJyNT05ikK8QGZ7tXgiG8beB8DA3Xk1iDw1evp1XF0tiLeAXR/ULCBsc4XKXlzzv10MZgCZ+5u5asNqUwCzol2BsEqWRw=; _CAS_={"dId":2274,"aId":0,"lbl":"Jakarta Pusat","cId":176,"long":"","lat":"","pCo":"","wId":12210375,"sId":11530573}; _abck=0606DF49F4D1546D546D50EC3EA27A65~0~YAAQzRXfrSudsjJ9AQAAXh9bcwaY1aAc2sWbjUB7RlpY9ywwofQRkUqt0cSUQaC/7X6AUR3ailJJlxajA0q+DHX09B5kSB/+URG+wKZlg5prYD9JjvnLJNbETmirl0xa0RaoRN+eu2L5Y9TmA/U0mFJgO1+M8cpo38uD6bSMieVWzOKjvlr62Mz54gKlmBefqguV72suk0rOSZnGHaL6HWqm3a++q0iHhmv8aNpmfoB9ECz/3JW1PHtbdq/K2sM5VvbNEH9v3Dk6zA3zfrZDMjKIlHSz/lbVvy7DL/lDstk7fj8FwHs2YhsFqasq/yjbUW1BUSweSt1qvlTOU8keElGjcWZpYrb4buQsESvonNXxNEdzKCq8hq9GJc1Bx1xJ0yH8tV/+cziVZLEfCGH4FmEjiv/P/vPVTLbG~-1~-1~-1; hfv_banner=true',
+
+                'cookie': cookies,
+            }
+            # while True:
+                # try:
+                #     proxy = getProxy()
+                #     break
+                # except:
+                #     pass
+
+            # proxies = {'https': 'https://'+proxy}
+            res = requests.post('https://gql.tokopedia.com/', headers=headers, data=data, timeout=2)
             break
         except:
-            pass
+            pass'''
 
-    while True:
-        try:
-            proxies = {'https': 'https://'+proxy}
-            res = requests.post('https://gql.tokopedia.com/', headers=headers, json=payload, timeout=5, proxies=proxies)
-            break
-        except:
-            pass
+    shopDomain = item_description.split("/")[0]
+    productKey = item_description.split("/")[1]
+    products = json.loads(prods[1:-1])
 
-    products = json.loads(res.text[1:-1])
     var_links = []
     try:
         for i in products['data']['pdpGetLayout']['components']:
@@ -427,6 +614,7 @@ def product_page_tokopedia(request, item_description):
                                 var_links.append(l['productURL'].split("/")[-1])
     except:
         pass
+
     checking_list = []
     for i in var_links:
         if i == productKey and len(var_links) > 1:
@@ -458,10 +646,15 @@ def product_page_tokopedia(request, item_description):
     weight = int(str(products['data']['pdpGetLayout']['basicInfo']['weight']))/1000
 
     name = json.loads(products['data']['pdpGetLayout']['pdpSession'])['pn']
+
     rating = products['data']['pdpGetLayout']['basicInfo']['stats']['rating']
+
     shop_name = products['data']['pdpGetLayout']['basicInfo']['shopName']
+
     id = products['data']['pdpGetLayout']['basicInfo']['id']
+
     pdpSesion = products['data']['pdpGetLayout']['pdpSession']
+
 
 
     for i in products['data']['pdpGetLayout']['components']:
@@ -480,6 +673,8 @@ def product_page_tokopedia(request, item_description):
                             models.append({'name': l['productName'].replace(name, "")[3:], 'price': int(int(l['price']) + (int(l['price'])*0.1)), 'stock': l['stock']['stock']})
                             prices.append(int(int(l['price']) + (int(l['price'])*0.1)))
 
+
+
     for i in products['data']['pdpGetLayout']['components']:
         if i['name'] == 'product_detail':
             for u in i['data'][0]['content']:
@@ -487,6 +682,7 @@ def product_page_tokopedia(request, item_description):
                     description = u['subtitle']
         if i['name'] == 'product_content':
             rezerv_price = int(int(i['data'][0]['price']['value']) + (int(i['data'][0]['price']['value'])*0.1))
+
 
     prices.sort()
     try:
@@ -519,7 +715,7 @@ def product_page_tokopedia(request, item_description):
         'sec-fetch-site': 'same-site',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://www.tokopedia.com/{item_description}',
+        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
         'accept-language': 'en-US,en;q=0.9',
     }
 
@@ -572,7 +768,7 @@ def product_page_tokopedia(request, item_description):
         'sec-fetch-site': 'same-site',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://www.tokopedia.com/{item_description}',
+        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
         'accept-language': 'en-US,en;q=0.9',
     }
 
@@ -689,11 +885,8 @@ def my_orders(request):
     if request.method == 'POST':
         form = refundForm(request.POST)
         if form.is_valid():
-            print("valid")
             form.save()
             return redirect(my_orders)
-        else:
-            print("not valid")
     else:
 
         def convert_price(price1):
@@ -728,7 +921,7 @@ def my_orders(request):
                     can_ship = "True"
                 else:
                     can_ship = "False"
-            print(shipping_status)
+
             context['orders'][item.id] = {
                 "id":item.id,
                 "name":item.name,
@@ -756,7 +949,7 @@ def my_orders(request):
                 "url": item.url,
                 "quantity": item.quantity,
             }
-        print(context['cart'])
+
 
 
         context['new_bills'] = {}
@@ -822,7 +1015,6 @@ def addCart_shopee(request, item_id, variant, quantity):
     # req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
     #
     # bill_code = json.loads(req.text)[0]['BillCode']
-    # print(country)
     product_buy = cart.objects.create(
         id_product = items[0].id,
         name = items[0].name,
@@ -884,7 +1076,7 @@ def buy(request):
 
     if request.method == "POST":
         dict = json.loads(request.POST.get("Products"))
-        print(dict)
+
         price = 0
         ids = []
         for id in dict:
@@ -900,14 +1092,17 @@ def buy(request):
         while len(str_id) < 6:
             str_id = "0" + str_id
 
-        print(ids)
-        print(price)
+
+
+
+
+
 
         item = wallet.objects.all().filter(client_email=request.user.email)[0]
         balance = item.balance
 
         if balance >= price:
-            print("done")
+
             item.balance = round(balance - price, 2)
             item.save()
             for id in ids:
@@ -945,7 +1140,7 @@ def buy(request):
             'billChargeToCustomer' : 2,
             }
             req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-            print(req.text)
+
             bill_code = json.loads(req.text)[0]['BillCode']
 
             for id in ids:
@@ -989,7 +1184,7 @@ def buy(request):
             'billChargeToCustomer' : 2,
             }
             req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-            print(req.text)
+
             bill_code = json.loads(req.text)[0]['BillCode']
 
             for id in ids:
@@ -1021,7 +1216,7 @@ def buy(request):
 
 
 def removeCart(request, item_id):
-    print(item_id)
+
     cart.objects.get(id=item_id).delete()
     return redirect(my_orders)
 
@@ -1297,7 +1492,6 @@ def pay_shipping(request):
         address = dict['address']
         phone = dict['phone']
         postcode = dict['postcode']
-        print(shippingi)
 
         if shippingi == "air":
             price = prices['air']
@@ -1330,7 +1524,6 @@ def pay_shipping(request):
         balance = item.balance
 
         if balance >= price:
-            print("done")
             item.balance = round(balance - price, 2)
             item.save()
 
@@ -1503,9 +1696,6 @@ def calculate_shipping_price(request):
         rate = dict['rate']
         country = dict['country']
         dict_n = {}
-        print(ids)
-        print(rate)
-        print(country)
         for shipping_type in ['air', 'sea1', 'sea2']:
             w1 = 0
             w2 = 0
@@ -1571,8 +1761,6 @@ def calculate_shipping_price(request):
 
                     w1 += math.ceil(float(length) * float(width) * float(height) / air_number)
                     w2 += math.ceil(float(weight))
-                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / air_number))
-                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
                 #################### SEA SHIPPING
                 if shipping_type == "sea1":
 
@@ -1582,8 +1770,6 @@ def calculate_shipping_price(request):
 
                     w2 += math.ceil(w2_b / 40) / 10
 
-                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / sea_1_number) / 10)
-                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
 
 
                 #################### SEA 2 SHIPPING
@@ -1591,12 +1777,8 @@ def calculate_shipping_price(request):
                 if shipping_type == "sea2":
                     w1 += math.ceil(float(length) * float(width) * float(height) / sea_2_number)
                     w2 += math.ceil(float(weight))
-                    print(f"Item no. {nr} volume: ", math.ceil(float(length) * float(width) * float(height) / sea_2_number))
-                    print(f"Item no. {nr} weight: ", math.ceil(float(weight)))
 
 
-            print("Total Volume: ", w1)
-            print("Total Weight: ", w2)
 
 
             if shipping_type == "air":
