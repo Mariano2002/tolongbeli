@@ -28,7 +28,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = item.amount,
                                 notes = "Recharge from user",
-                                in_out = 1,
+                                income = 1,
                             )
                             hist.save()
 
@@ -60,7 +60,7 @@ class RequestLogger():
                     client_email = item.client_email,
                     value = product.rmprice,
                     notes = "Product purchase",
-                    in_out = 0,
+                    income = 0,
                 )
                 hist.save()
 
@@ -79,7 +79,7 @@ class RequestLogger():
                     client_email = item.client_email,
                     value = product.shipping_price,
                     notes = "Shipping paid",
-                    in_out = 0,
+                    income = 0,
                 )
                 hist.save()
 
@@ -125,7 +125,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = product.rmprice,
                                 notes = "Product purchase",
-                                in_out = 0,
+                                income = 0,
                             )
                             hist.save()
 
@@ -157,7 +157,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = product.shipping_price,
                                 notes = "Shipping paid",
-                                in_out = 0,
+                                income = 0,
                             )
                             hist.save()
 
@@ -176,7 +176,7 @@ class RequestLogger():
                             client_email = i.client_email,
                             value = i.price,
                             notes = "Extra bill paid",
-                            in_out = 0,
+                            income = 0,
                         )
                         hist.save()
                 except:
@@ -206,7 +206,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = item.amount,
                                 notes = "Recharge from user",
-                                in_out = 1,
+                                income = 1,
                             )
                             hist.save()
 
@@ -238,7 +238,7 @@ class RequestLogger():
                     client_email = item.client_email,
                     value = product.rmprice,
                     notes = "Product purchase",
-                    in_out = 0,
+                    income = 0,
                 )
                 hist.save()
 
@@ -256,7 +256,7 @@ class RequestLogger():
                     client_email = item.client_email,
                     value = product.shipping_price,
                     notes = "Shipping paid",
-                    in_out = 0,
+                    income = 0,
                 )
                 hist.save()
 
@@ -303,7 +303,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = product.rmprice,
                                 notes = "Product purchase",
-                                in_out = 0,
+                                income = 0,
                             )
                             hist.save()
 
@@ -337,7 +337,7 @@ class RequestLogger():
                                 client_email = item.client_email,
                                 value = product.shipping_price,
                                 notes = "Shipping paid",
-                                in_out = 0,
+                                income = 0,
                             )
                             hist.save()
 
@@ -361,7 +361,7 @@ class RequestLogger():
                             client_email = i.client_email,
                             value = i.price,
                             notes = "Extra bill paid",
-                            in_out = 0,
+                            income = 0,
                         )
                         hist.save()
                 except:

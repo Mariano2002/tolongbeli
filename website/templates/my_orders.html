@@ -24,355 +24,394 @@
         <br>
         <br>
         <br>
-        {% if new_bills|length != 0 %}
-            <h3 class="text-center">You have a new bill to pay</h3>
-              {% for key, values in new_bills.items %}
-                <p class="text-center">Bill description: {{ values.description }} | Bill price: {{ values.price }} | <a style="color: black" href="https://toyyibpay.com/{{ values.bill_code }}">Pay here</a></p>
-              {% endfor %}
-        {% endif %}
-
-        {% if orders|length == 0 %}
-            <h3 class="text-center">You have no orders</h3>
-        {% else %}
-            <h3 class="text-center">Your orders</h3>
-            <br>
-            <div class="row justify-content-md-center">
-                <div class="col col-lg-8">
-                        <table id="orders" class="table table-bordered table-responsive">
-                          <thead class="thead-dark">
-                            <tr>
-                              <th scope="col">ID</th>
-                              <th scope="col">Name</th>
-                              <th scope="col">Variant</th>
-                              <th scope="col">Quantity</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Price in RM</th>
-                              <th scope="col">Comments</th>
-                              <th scope="col">Status</th>
-                              <th scope="col">Select</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-
-                  {% for key, values in orders.items %}
-                    <tr>
-                      <td>{{ values.id }}</td>
-                      <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
-                      <td>{{ values.variant }}</td>
-                      <td>{{ values.quantity }}</td>
-                      <td>{{ values.price }}</td>
-                      <td>{{ values.rmprice }}</td>
-                      <td>{{ values.extra_info }}</td>
 
 
-                      {% if values.order_status == "CANCELLED STOCK" %}
-                        <td>Cancelled by seller - did not have stock</td>
-                      {% elif values.order_status == "CANCELLED SOLD" %}
-                        <td>Cancelled by seller - item sold out</td>
-                      {% elif values.order_status == "CANCELLED SHIP" %}
-                        <td>Cancelled by system - seller did not shipout</td>
-                      {% elif values.order_status == "BUYING" %}
-                        <td>Buying - Product will be ordered soon</td>
-                      {% elif values.order_status == "ORDERED" %}
-                        <td>Ordered - Waiting for the seller to ship the order</td>
-                      {% elif values.order_status == "SHIPPED" %}
-                        <td>Shipped - Waiting for the product to arrive</td>
-                      {% elif values.order_status == "ARRIVED" %}
-                            {% if values.shipping_status == "NOT PAID" %}
-                                {% if values.can_ship == "False" %}
-                                    <td>Arrived to warehouse - waiting for the measurements</td>
-                                {% else %}
-                                    <td>Arrived to warehouse - Ready to ship to you</td>
-                                {% endif %}
-                            {% elif values.shipping_status == "NOT SHIPPED" %}
-                                <td>Paid but not been shipped yet</td>
-                            {% elif values.shipping_status == "SHIPPED" %}
-                                <td>Shipped to your destination</td>
-                            {% elif values.shipping_status == "ARRIVED" %}
-                                <td>Arrived on your destination</td>
-                            {% endif %}
-                      {% endif %}
-                      <td>
-                          <div class="custom-control custom-checkbox text-center">
-                            {% if values.can_ship == "False" %}
-                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}" disabled>
-                            {% else %}
-                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}">
-                            {% endif %}
-                          <label class="custom-control-label" for="shippingCheck{{ values.id }}"></label>
-                          </div>
-                      </td>
-                    </tr>
-                  {% endfor %}
-
-                  </tbody>
-                        </table>
-                <div class="row">
-                    <div class="col-md-12 order-md-1">
-
-                      <form class="needs-validation" novalidate="">
-                          <h2 id="error"></h2>
-                          <div class="row">
-                          <div class="col-md-4 order-md-2 mb-4"><p></p></div>
-                        <div class="col-md-4 order-md-2 mb-4">
-                          <h4 class="d-flex justify-content-between align-items-center mb-3">
-                            <span class="text-muted">Prices</span>
-                          </h4>
-                            <ul class="list-group mb-3">
-                                <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                  <div>
-                                    <h6 class="my-0">Air Price</h6>
-                                  </div>
-                                  <span id="air_price" class="text-muted">RM</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                  <div>
-                                    <h6 class="my-0">Sea 1 price</h6>
-                                  </div>
-                                  <span id="sea1_price" class="text-muted">RM</span>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between lh-condensed">
-                                  <div>
-                                    <h6 class="my-0">Sea 2 price</h6>
-                                  </div>
-                                  <span id="sea2_price" class="text-muted">RM</span>
-                                </li>
-                            </ul>
-
+        <section class="latest-product-area">
+            <div class="container">
+                <div class="row product-btn d-flex justify-content-between">
+                        <div class="properties__button">
+                            <!--Nav Button  -->
+                            <nav>
+                                <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                                    <a class="nav-item nav-link active" id="cart_tab" data-toggle="tab" href="#nav-cart" role="tab" aria-controls="nav-cart" aria-selected="true">Shopping Cart</a>
+                                    <a class="nav-item nav-link" id="order_tab" data-toggle="tab" href="#nav-orders" role="tab" aria-controls="nav-orders" aria-selected="false">Paid Order</a>
+                                    <a class="nav-item nav-link" id="wallet_tab" data-toggle="tab" href="#nav-wallet" role="tab" aria-controls="nav-wallet" aria-selected="false">Wallet/Bills</a>
+                                </div>
+                            </nav>
+                            <!--End Nav Button  -->
                         </div>
-                        </div>
-
-
-                        <hr class="mb-4">
-                        <div class="mb-3">
-                          <label for="address">Address</label>
-                          <input type="text" class="form-control" id="address" placeholder="Address" required="">
-                          <div class="invalid-feedback">
-                            Please enter your shipping address.
-                          </div>
-                        </div>
-
-                        <div class="mb-3">
-                          <label for="postcode">Postcode</label>
-                          <input type="text" class="form-control" id="postcode" placeholder="Postcode">
-                          <div class="invalid-feedback">
-                            Please enter your shipping postcode.
-                          </div>
-                        </div>
-
-
-                        <div class="mb-3">
-                          <label for="phone">Phone</label>
-                          <input type="text" class="form-control" id="phone" placeholder="Phone" required="">
-                          <div class="invalid-feedback">
-                            Please enter your shipping phone.
-                          </div>
-                        </div>
-
-                        <div class="row">
-                          <div class="col-md-4 mb-3">
-                            <label for="shipping">Type</label>
-                              <select class="w-100" name="shipping" id="shipping">
-                                    <option class="shipping" value="air" id="air">Air</option>
-                                    <option class="shipping" value="sea1" id="sea1">Sea 1</option>
-                                    <option class="shipping" value="sea2" id="sea2">Sea 2</option>
-                              </select>
-                            <div class="invalid-feedback">
-                              Please select a valid country.
-                            </div>
-                          </div>
-                          <div class="col-md-4 mb-3">
-                            <label for="rates">Rate</label>
-                              <select class="w-100" name="rates" id="rates" onchange="change_ship()">
-                                  <option class="rate" value="Normal" id="Normal">Normal</option>
-                                  <option class="rate" value="Sensitive" id="Sensitive">Sensitive</option>
-                              </select>
-                            <div class="invalid-feedback">
-                              Please provide a valid state.
-                            </div>
-                          </div>
-                          <div class="col-md-4 mb-3">
-                            <label for="countries">Country</label>
-                              <select class="w-100" name="countries" id="countries" onchange="change_ship()">
-                                    <option class="country" value="Malaysia1" id="Malaysia1">Malaysia1</option>
-                                    <option class="country" value="Malaysia2" id="Malaysia2">Malaysia2</option>
-                                    <option class="country" value="Singapore" id="Singapore">Singapore</option>
-                                    <option class="country" value="Brunel" id="Brunel">Brunel</option>
-                              </select>
-                            <div class="invalid-feedback">
-                              Zip code required.
-                            </div>
-                          </div>
-                        </div>
-                        <hr class="mb-4">
-
-                      </form>
-                    </div>
-                  </div>
-
-                <div class="text-right">
-                <button onclick="ship()" id="shipout" class="btn_1" style="text-align: right">Ship Out</button>
                 </div>
+                <!-- Nav Card -->
+                <div class="tab-content" id="nav-tabContent">
+                    <!-- card one -->
+                    <div class="tab-pane fade show active" id="nav-cart" role="tabpanel" aria-labelledby="nav-cart-tab">
 
-                </div>
-            </div>
-        {% endif %}
-
-        <br>
-        <hr>
-        <br>
-
-        {% if cart|length == 0 %}
-            <h3 class="text-center">You have no items on your cart</h3>
-        {% else %}
-            <h3 class="text-center">Your cart</h3>
-            <br>
-            <div class="row justify-content-md-center">
-                <div class="col col-lg-8">
-                        <table id="cart" class="table table-bordered table-responsive">
-                          <thead class="thead-dark">
-                            <tr>
-                              <th scope="col">ID</th>
-                              <th style="width:30%" scope="col">Name</th>
-                              <th scope="col">Variant</th>
-                              <th scope="col">Quantity</th>
-                              <th scope="col">Price</th>
-                              <th scope="col">Price in RM</th>
-                              <th scope="col">Comments</th>
-                              <th scope="col">Action</th>
-                              <th scope="col">Select</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-
-                          {% for key, values in cart.items %}
-                            <tr>
-                              <td>{{ values.id }}</td>
-                              <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
-                              <td>{{ values.variant }}</td>
-                              <td>{{ values.quantity }}</td>
-                              <td>{{ values.price }}</td>
-                              <td>{{ values.rmprice }}</td>
-                              <td contenteditable="true"></td>
-                              <td><u><a href="{% url 'removeCart' values.id %}" style="color: black;">Remove</a></u></td>
-                              <td><div class="custom-control custom-checkbox text-center">
-                                  <input type="checkbox" class="custom-control-input"  onchange="change_checkout()" id="customCheck{{ values.id }}">
-                                  <label class="custom-control-label" for="customCheck{{ values.id }}"></label>
-                              </div></td>
-                            </tr>
-                          {% endfor %}
-
-                          </tbody>
-                        </table>
-                <div id="to_pay2" class="text-right">
-                    <h3></h3>
-                </div>
-                <div class="text-right">
-                <button onclick="checkout()" id="checkout" class="btn_1" style="text-align: right">Check Out</button>
-                </div>
-                </div>
-            </div>
-            {% endif %}
-                <hr class="mb-4">
-                <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <form action="{% url 'recharge' %}" method="POST">
-                            {% csrf_token %}
-                            <label for="address">Value</label>
-                            <input type="number" class="form-control" id="charge_number" name="charge_number" value="1" min="1" max="1000">
+                        {% if cart|length == 0 %}
+                            <h3 class="text-center">You have no items on your cart</h3>
+                        {% else %}
+                            <h3 class="text-center">Your cart</h3>
                             <br>
-                            <div class="text-right">
-                            <button type="submit" class="btn_1" style="text-align: right">Recharge</button>
+                            <div class="row justify-content-md-center">
+                                <div class="col col-lg-12">
+                                        <table id="cart" class="table table-bordered table-responsive">
+                                          <thead class="thead-dark">
+                                            <tr>
+                                              <th scope="col">ID</th>
+                                              <th style="width:30%" scope="col">Name</th>
+                                              <th scope="col">Variant</th>
+                                              <th scope="col">Quantity</th>
+                                              <th scope="col">RP Price</th>
+                                              <th scope="col">Price in RM</th>
+                                              <th scope="col">Tinggalkan Pesanan Ringkas</th>
+                                              <th scope="col">Action</th>
+                                              <th scope="col">Select</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+
+                                          {% for key, values in cart.items %}
+                                            <tr>
+                                              <td>{{ values.id }}</td>
+                                              <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
+                                              <td>{{ values.variant }}</td>
+                                              <td>{{ values.quantity }}</td>
+                                              <td>{{ values.price }}</td>
+                                              <td>{{ values.rmprice }}</td>
+                                              <td contenteditable="true" class="editable" data-placeholder="Tinggalkan pesanan untuk seller..."></td>
+                                              <td><u><a href="{% url 'removeCart' values.id %}" style="color: black;">Remove</a></u></td>
+                                              <td><div class="custom-control custom-checkbox text-center">
+                                                  <input type="checkbox" class="custom-control-input"  onchange="change_checkout()" id="customCheck{{ values.id }}">
+                                                  <label class="custom-control-label" for="customCheck{{ values.id }}"></label>
+                                              </div></td>
+                                            </tr>
+                                          {% endfor %}
+
+                                          </tbody>
+                                        </table>
+                                <div id="to_pay2" class="text-right">
+                                    <h3></h3>
+                                </div>
+                                <div class="text-right">
+                                <button onclick="checkout()" id="checkout" class="btn_1" style="text-align: right">Check Out</button>
+                                </div>
+                                </div>
                             </div>
-                        </form>
+                            {% endif %}
+                    </div>
+                    <!-- Card two -->
+                    <div class="tab-pane fade" id="nav-orders" role="tabpanel" aria-labelledby="nav-orders-tab">
+
+                        {% if orders|length == 0 %}
+                            <h3 class="text-center">You have no orders</h3>
+                        {% else %}
+                            <h3 class="text-center">Your orders</h3>
+                            <br>
+                            <div class="row justify-content-md-center">
+                                <div class="col col-lg-12">
+                                        <table id="orders" class="table table-bordered table-responsive">
+                                          <thead class="thead-dark">
+                                            <tr>
+                                              <th scope="col">ID</th>
+                                              <th scope="col">Name</th>
+                                              <th scope="col">Variant</th>
+                                              <th scope="col">Quantity</th>
+                                              <th scope="col">RP Price</th>
+                                              <th scope="col">Price in RM</th>
+                                              <th scope="col">Comments</th>
+                                              <th scope="col">Status</th>
+                                              <th scope="col">Select</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+
+                                  {% for key, values in orders.items %}
+                                    <tr>
+                                      <td>{{ values.id }}</td>
+                                      <td><u><a href="{{ values.url }}" style="color: black">{{ values.name|truncatechars:40 }}</a></u></td>
+                                      <td>{{ values.variant }}</td>
+                                      <td>{{ values.quantity }}</td>
+                                      <td>{{ values.price }}</td>
+                                      <td>{{ values.rmprice }}</td>
+                                      <td>{{ values.extra_info }}</td>
+
+
+                                      {% if values.order_status == "CANCELLED STOCK" %}
+                                        <td>Cancelled by seller - did not have stock</td>
+                                      {% elif values.order_status == "CANCELLED SOLD" %}
+                                        <td>Cancelled by seller - item sold out</td>
+                                      {% elif values.order_status == "CANCELLED SHIP" %}
+                                        <td>Cancelled by system - seller did not shipout</td>
+                                      {% elif values.order_status == "BUYING" %}
+                                        <td>Buying - Product will be ordered soon</td>
+                                      {% elif values.order_status == "ORDERED" %}
+                                        <td>Ordered - Waiting for the seller to ship the order</td>
+                                      {% elif values.order_status == "SHIPPED" %}
+                                        <td>Shipped - Waiting for the product to arrive</td>
+                                      {% elif values.order_status == "ARRIVED" %}
+                                            {% if values.shipping_status == "NOT PAID" %}
+                                                {% if values.can_ship == "False" %}
+                                                    <td>Arrived to warehouse - waiting for the measurements</td>
+                                                {% else %}
+                                                    <td class="no">Arrived to warehouse - Ready to ship to you</td>
+                                                {% endif %}
+                                            {% elif values.shipping_status == "NOT SHIPPED" %}
+                                                <td>Paid but not been shipped yet</td>
+                                            {% elif values.shipping_status == "SHIPPED" %}
+                                                <td>Shipped to your destination</td>
+                                            {% elif values.shipping_status == "ARRIVED" %}
+                                                <td class="yes">Arrived on your destination</td>
+                                            {% endif %}
+                                      {% endif %}
+                                      <td>
+                                          <div class="custom-control custom-checkbox text-center">
+                                            {% if values.can_ship == "False" %}
+                                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}" disabled>
+                                            {% else %}
+                                                <input type="checkbox" class="custom-control-input" onchange="change_ship()" id="shippingCheck{{ values.id }}">
+                                            {% endif %}
+                                          <label class="custom-control-label" for="shippingCheck{{ values.id }}"></label>
+                                          </div>
+                                      </td>
+                                    </tr>
+                                  {% endfor %}
+
+                                  </tbody>
+                                        </table>
+                                <div class="row">
+                                    <div class="col-md-12 order-md-1">
+
+                                      <form class="needs-validation" id="ship_form" >
+                                          <div class="row">
+                                          <div class="col-md-4 order-md-2 mb-4"><p></p></div>
+                                        <div class="col-md-4 order-md-2 mb-4">
+                                          <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="text-muted">Prices</span>
+                                          </h4>
+                                            <ul class="list-group mb-3">
+                                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                                  <div>
+                                                    <h6 class="my-0">Air Price</h6>
+                                                  </div>
+                                                  <span id="air_price" class="text-muted">RM</span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                                  <div>
+                                                    <h6 class="my-0">Sea Bulky price</h6>
+                                                  </div>
+                                                  <span id="sea1_price" class="text-muted">RM</span>
+                                                </li>
+                                                <li class="list-group-item d-flex justify-content-between lh-condensed">
+                                                  <div>
+                                                    <h6 class="my-0">Sea Small price</h6>
+                                                  </div>
+                                                  <span id="sea2_price" class="text-muted">RM</span>
+                                                </li>
+                                            </ul>
+
+                                        </div>
+                                        </div>
+
+
+                                        <hr class="mb-4">
+                                        <div class="mb-3">
+                                          <label for="name">Name</label>
+                                          <input type="text" class="form-control" id="name" placeholder="Name" required>
+                                          <div class="invalid-feedback">
+                                            Please enter your  name.
+                                          </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                          <label for="address">Address</label>
+                                          <input type="text" class="form-control" id="address" placeholder="Address" required>
+                                          <div class="invalid-feedback">
+                                            Please enter your shipping address.
+                                          </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                          <label for="postcode">Postcode</label>
+                                          <input type="text" class="form-control" id="postcode" placeholder="Postcode" required>
+                                          <div class="invalid-feedback">
+                                            Please enter your shipping postcode.
+                                          </div>
+                                        </div>
+
+
+                                        <div class="mb-3">
+                                          <label for="phone">Phone</label>
+                                          <input type="text" class="form-control" id="phone" placeholder="Phone" required>
+                                          <div class="invalid-feedback">
+                                            Please enter your shipping phone.
+                                          </div>
+                                        </div>
+
+                                        <div class="row">
+                                          <div class="col-md-4 mb-3">
+                                            <label for="shipping">Type</label>
+                                              <select class="w-100" name="shipping" id="shipping" onchange="change_ship()">
+                                                    <option class="shipping" value="air" id="air">Air</option>
+                                                    <option class="shipping" value="sea1" id="sea1">Sea Bulky</option>
+                                                    <option class="shipping" value="sea2" id="sea2">Sea Small</option>
+                                              </select>
+                                            <div class="invalid-feedback">
+                                              Please select a valid country.
+                                            </div>
+                                          </div>
+                                          <div class="col-md-4 mb-3">
+                                            <label for="rates">Rate</label>
+                                              <select class="w-100" name="rates" id="rates" onchange="change_ship()">
+                                                  <option class="rate" value="Normal" id="Normal">Normal</option>
+                                                  <option class="rate" value="Sensitive" id="Sensitive">Sensitive</option>
+                                              </select>
+                                            <div class="invalid-feedback">
+                                              Please provide a valid state.
+                                            </div>
+                                          </div>
+                                          <div class="col-md-4 mb-3">
+                                            <label for="countries">Country</label>
+                                              <select class="w-100" name="countries" id="countries" onchange="change_ship()">
+                                                    <option class="country" value="Malaysia1" id="Malaysia1">West Malaysia</option>
+                                                    <option class="country" value="Malaysia2" id="Malaysia2">East Malaysia</option>
+                                                    <option class="country" value="Singapore" id="Singapore">Singapore</option>
+                                                    <option class="country" value="Brunel" id="Brunel">Brunel</option>
+                                              </select>
+                                            <div class="invalid-feedback">
+                                              Zip code required.
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <hr class="mb-4">
+
+                                      </form>
+                                    </div>
+                                  </div>
+
+                                <p id="error" class="text-danger text-right"></p>
+                                <div class="text-right">
+                                <button onclick="ship()" id="shipout" class="btn_1" style="text-align: right">Ship Out</button>
+                                </div>
+
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <!-- Card two -->
+                    <div class="tab-pane fade" id="nav-wallet" role="tabpanel" aria-labelledby="nav-wallet-tab">
+
+                        {% if new_bills|length != 0 %}
+                            <h3 class="text-center">You have a new bill to pay</h3>
+                              {% for key, values in new_bills.items %}
+                                <p class="text-center">Bill description: {{ values.description }} | Bill price: {{ values.price }} | <a style="color: black" href="https://toyyibpay.com/{{ values.bill_code }}">Pay here</a></p>
+                              {% endfor %}
+                        {% endif %}
+                        <div class="row justify-content-center">
+                            <div class="col-lg-12">
+                                <h3 class="text-center">Recharge your wallet</h3>
+                                <form action="{% url 'recharge' %}" method="POST">
+                                    {% csrf_token %}
+                                    <label for="address">Value</label>
+                                    <input type="number" class="form-control" id="charge_number" name="charge_number" value="1" min="1" >
+                                    <br>
+                                    <div class="text-right">
+                                    <button type="submit" class="btn_1" style="text-align: right">Recharge</button>
+                                    </div>
+                                </form>
+                                <hr class="mb-4">
+                            </div>
+                        </div>
+                        <div class="row justify-content-center">
+                            <div class="col-md-12">
+                              <h3 class="text-center">Ask for a Refund</h3>
+                              <form class="needs-validation" novalidate="" method="POST">
+                                {% csrf_token %}
+                                <div class="mb-3">
+                                  <label for="name">Name</label>
+                                    {{ refund_form.name.as_hidden }}
+                                  <input type="text" class="form-control" id="name" name="name" placeholder="Name" required="">
+                                    {{ refund_form.client_email.as_hidden }}
+
+                                </div>
+
+                                <div class="mb-3">
+                                  <label for="bank_name">Bank Name</label>
+                                    {{ refund_form.bank_name.as_hidden }}
+                                  <input type="text" class="form-control" id="bank_name" name="bank_name" placeholder="Bank Name">
+
+                                </div>
+
+
+                                <div class="mb-3">
+                                  <label for="acc_number">Account Number</label>
+                                    {{ refund_form.account_number.as_hidden }}
+                                  <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Account Number" required="">
+
+                                </div>
+                                <div class="mb-3">
+                                    <label for="value">Value to withdraw</label>
+                                    {{ refund_form.value.as_hidden }}
+                                    <input type="number" class="form-control" id="value" name="value" min="1">
+
+                                </div>
+
+
+                                <br>
+                                <div class="text-right">
+                                <input class="btn_1" type="submit" value="Ask for Refund" />
+                                </div>
+                              </form>
                         <hr class="mb-4">
+                            </div>
+                        </div>
+                        <div class="row justify-content-center">
+
+                            <div class="col-md-6 order-md-2 mb-4">
+                              <h4 class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">Your wallet</span>
+                                <span class="badge badge-secondary badge-pill">Balance: RM {{ balance }}</span>
+
+                              </h4>
+                              <ul class="list-group mb-3">
+
+                                    {% for hist in history %}
+                                        {% if hist.income %}
+                                            <li class="list-group-item d-flex justify-content-between bg-light">
+                                              <div class="text-success">
+                                                <small>{{ hist.notes }}</small>
+                                              </div>
+                                              <span class="text-success">+RM {{ hist.value }}</span>
+                                            </li>
+                                        {% else %}
+                                            <li class="list-group-item d-flex justify-content-between bg-light">
+                                              <div class="text-danger">
+                                                <small>{{ hist.notes }}</small>
+                                              </div>
+                                              <span class="text-danger">-RM {{ hist.value }}</span>
+                                            </li>
+                                        {% endif %}
+
+                                  {% endfor %}
+
+                              </ul>
+
+                            </div>
+
+                        </div>
                     </div>
-                </div>
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                      <form class="needs-validation" novalidate="" method="POST">
-                        {% csrf_token %}
-                        <div class="mb-3">
-                          <label for="name">Name</label>
-                            {{ refund_form.name.as_hidden }}
-                          <input type="text" class="form-control" id="name" name="name" placeholder="Name" required="">
-                            {{ refund_form.client_email.as_hidden }}
-
-                        </div>
-
-                        <div class="mb-3">
-                          <label for="bank_name">Bank Name</label>
-                            {{ refund_form.bank_name.as_hidden }}
-                          <input type="text" class="form-control" id="bank_name" name="bank_name" placeholder="Bank Name">
-
-                        </div>
-
-
-                        <div class="mb-3">
-                          <label for="acc_number">Account Number</label>
-                            {{ refund_form.account_number.as_hidden }}
-                          <input type="text" class="form-control" id="account_number" name="account_number" placeholder="Account Number" required="">
-
-                        </div>
-                        <div class="mb-3">
-                            <label for="value">Value to withdraw</label>
-                            {{ refund_form.value.as_hidden }}
-                            <input type="number" class="form-control" id="value" name="value" min="1" max="1000">
-
-                        </div>
-
-
-                        <br>
-                        <div class="text-right">
-                        <input class="btn_1" type="submit" value="Ask for Refund" />
-                        </div>
-                      </form>
-                <hr class="mb-4">
-                    </div>
-                </div>
-
-                <div class="row justify-content-center">
-
-        <div class="col-md-4 order-md-2 mb-4">
-          <h4 class="d-flex justify-content-between align-items-center mb-3">
-            <span class="text-muted">Your wallet</span>
-            <span class="badge badge-secondary badge-pill">Balance: RM {{ balance }}</span>
-
-          </h4>
-          <ul class="list-group mb-3">
-
-                {% for hist in history %}
-                    {% if hist.in_out %}
-                        <li class="list-group-item d-flex justify-content-between bg-light">
-                          <div class="text-success">
-                            <small>{{ hist.notes }}</small>
-                          </div>
-                          <span class="text-success">+RM {{ hist.value }}</span>
-                        </li>
-                    {% else %}
-                        <li class="list-group-item d-flex justify-content-between bg-light">
-                          <div class="text-danger">
-                            <small>{{ hist.notes }}</small>
-                          </div>
-                          <span class="text-danger">-RM {{ hist.value }}</span>
-                        </li>
-                    {% endif %}
-
-              {% endfor %}
-
-          </ul>
-
-        </div>
 
                 </div>
 
             </div>
+        </section>
+
 
 
 
     </main>
 
 {% include 'footer.html' %}
+
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -450,6 +489,7 @@
          function change_ship() {
             rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
             country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
+            shipping = document.getElementById("shipping").options[document.getElementById("shipping").selectedIndex].id;
             var ids = []
             var trs = document.getElementById("orders").getElementsByTagName("tr")
             console.log(trs)
@@ -469,6 +509,7 @@
                     "ids": ids,
                     "rate": rate,
                     "country": country,
+                    "shipping": shipping,
                 }
 
                 var http = new XMLHttpRequest();
@@ -483,11 +524,12 @@
                        $("#air_price").html("RM "+String(json.prices.air));
                        $("#sea1_price").html("RM "+String(json.prices.sea1));
                        $("#sea2_price").html("RM "+String(json.prices.sea2));
+                       $("#error").html("");
                     }
                     else if (this.status == 404){
                         var json = JSON.parse(this.responseText);
                         console.log(json.error);
-                       $("#to_pay h3").html(json.error);
+                       $("#error").html(json.error);
                     }
                 }
                 http.open("POST", url, true);
@@ -505,11 +547,20 @@
 
 
          function ship(){
+              let allAreFilled = true;
+              document.getElementById("ship_form").querySelectorAll("[required]").forEach(function(i) {
+                if (!allAreFilled) return;
+                if (!i.value) allAreFilled = false;
+              })
+              if (!allAreFilled) {
+                return
+              }
             document.getElementById("shipout").disabled = true;
             address = document.getElementById("address").value
             postcode = document.getElementById("postcode").value;
             phone = document.getElementById("phone").value;
-            console.log(address)
+            name = document.getElementById("name").value;
+
             shipping = document.getElementById("shipping").options[document.getElementById("shipping").selectedIndex].id;
             rate = document.getElementById("rates").options[document.getElementById("rates").selectedIndex].id;
             country = document.getElementById("countries").options[document.getElementById("countries").selectedIndex].id;
@@ -550,6 +601,7 @@
                             "prices" : json.prices,
                             "address" : address,
                             "postcode" : postcode,
+                            "name" : name,
                             "phone" : phone,
                         }
                         var http1 = new XMLHttpRequest();
@@ -620,6 +672,23 @@
 		<!-- Jquery Plugins, main Jquery -->
         <script src="{% static 'assets/js/plugins.js' %}"></script>
         <script src="{% static 'assets/js/main.js' %}"></script>
+        <style>
+            td.yes {
+                border-width: 2px;
+                border-style: solid;
+                border-color: green;
+            }
+            td.no {
+                border-width: 2px;
+                border-style: solid;
+                border-color: yellow;
+            }
+            .editable:empty:before {
+                content: attr(data-placeholder);
 
+                  color: lightslategray;
+                  opacity: 0.7; /* Firefox */
+            }
+        </style>
     </body>
 </html>

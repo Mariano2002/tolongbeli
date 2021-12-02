@@ -99,6 +99,7 @@ class sold(models.Model):
 class shipping(models.Model):
     sold_ids = models.CharField(max_length=100, blank=False)
     client_email = models.CharField(max_length=300, blank=False)
+    name = models.CharField(max_length=300, blank=False)
     client_id = models.CharField(max_length=300, blank=False, default="")
     shipping_price = models.FloatField(default=0)
     SHIPPING_CHOOSE = (
@@ -249,4 +250,31 @@ class history(models.Model):
     client_email = models.CharField(max_length=300, blank=False)
     value = models.FloatField()
     notes = models.CharField(max_length=300, blank=True, default="")
-    in_out = models.BooleanField(null=False, blank=False, default=False)
+    income = models.BooleanField(null=False, blank=False, default=False)
+
+    @admin.display
+    def IN_or_OUT(self):
+        if self.income == 1:
+            in_out = "Income"
+        if self.income == 0:
+            in_out = "Outcome"
+        return in_out
+
+
+class allow_shipping(models.Model):
+    air_west_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    air_east_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    air_singapore = models.BooleanField(null=False, blank=False, default=True)
+    air_brunei = models.BooleanField(null=False, blank=False, default=True)
+
+    sea_bulky_west_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    sea_bulky_east_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    sea_bulky_singapore = models.BooleanField(null=False, blank=False, default=True)
+    sea_bulky_brunei = models.BooleanField(null=False, blank=False, default=True)
+
+    sea_small_west_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    sea_small_east_malaysia = models.BooleanField(null=False, blank=False, default=True)
+    sea_small_singapore = models.BooleanField(null=False, blank=False, default=True)
+    sea_small_brunei = models.BooleanField(null=False, blank=False, default=True)
+
+

@@ -286,11 +286,15 @@ def product_page_shopee(request, item_description):
     shipping_price = None
     for i in response.json()['data']['shipping_infos']:
         try:
-            if int(i['cost_info']['estimated_shipping_fee']) < shipping_price:
-                shipping_price = int(i['cost_info']['estimated_shipping_fee'])
+            if i['channel']['name'] == 'Reguler':
+                shipping_price = int(i['original_cost'])
+                shipping_name = i['channel']['name']
+                break
+            if int(i['original_cost']) < shipping_price:
+                shipping_price = int(i['original_cost'])
                 shipping_name = i['channel']['name']
         except:
-            shipping_price = int(i['cost_info']['estimated_shipping_fee'])
+            shipping_price = int(i['original_cost'])
             shipping_name = i['channel']['name']
 
     for nr,i in enumerate(product['images']):
@@ -298,7 +302,7 @@ def product_page_shopee(request, item_description):
 
 
     context_product_shopee = {   "id": product['itemid'],
-                                 "url": f"https://shopee.co.id/{item_description}".encode('cp1252'),
+                                 "url": f"https://shopee.co.id/{item_description}",
                                  "name": product['name'],
                                  "images": product['images'],
                                  "image": "https://cf.shopee.co.id/file/"+product['image'],
@@ -493,14 +497,16 @@ def product_page_tokopedia(request, item_description):
                     if self.stopped():
                         break
 
-                    res = requests.post('https://gql.tokopedia.com/', headers=headers, data=data, timeout=2)
-                    prods = res.text
-
+                    resi = requests.post('https://gql.tokopedia.com/', headers=headers, data=data, timeout=2)
+                    prods = resi.text
+                    products = json.loads(prods[1:-1])
+                    weight = int(str(products['data']['pdpGetLayout']['basicInfo']['weight']))/1000
+                    res = resi
                 except:
                     pass
 
     threads = []
-    for i in range(0, 10):
+    for i in range(0, 15):
         test = datalogger("test.txt")
         threads.append(test)
         test.start()
@@ -895,7 +901,7 @@ def my_orders(request):
             while price_1:
                 price_2 += price_1[:3]
                 if len(price_1) > 3:
-                    price_2 += '.'
+                    price_2 += ','
                 price_1 = price_1[3:]
             return price_2[::-1]
         context = {}
@@ -1034,7 +1040,7 @@ def addCart_shopee(request, item_id, variant, quantity):
 
 
 @login_required(login_url=login_page)
-def addCart_tokopedia(request, item_id, variant, quantity, rate, country):
+def addCart_tokopedia(request, item_id, variant, quantity):
 
 
     items = product_view.objects.all().filter(id=item_id)
@@ -1061,8 +1067,6 @@ def addCart_tokopedia(request, item_id, variant, quantity, rate, country):
         client_email=request.user.email,
         client_id="MY"+str_id,
         quantity=quantity,
-        shipping_rate=rate,
-        shipping_country=country,
     )
 
     product_buy.save()
@@ -1127,8 +1131,8 @@ def buy(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : new_price*100,
-            'billReturnUrl' : 'http://127.0.0.1:8000/',
-            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1171,8 +1175,8 @@ def buy(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : price*100,
-            'billReturnUrl' : 'http://127.0.0.1:8000/',
-            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1450,8 +1454,8 @@ def change_bill(request):
             'billPriceSetting': 1,
             'billPayorInfo': 0,
             'billAmount': float(new_price)*100,
-            'billReturnUrl': 'http://127.0.0.1:8000/',
-            'billCallbackUrl': 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo': "MY" + str_id,
             'billTo': email,
             'billEmail': email,
@@ -1489,9 +1493,43 @@ def pay_shipping(request):
         shippingi = dict['shipping']
         rate = dict['rate']
         country = dict['country']
+        name = dict['name']
         address = dict['address']
         phone = dict['phone']
         postcode = dict['postcode']
+        print(country)
+        print(shippingi)
+        allowed_shippment = allow_shipping.objects.all()[0]
+        if shippingi == "air":
+            if country == "Malaysia1" and allow_shipping.air_west_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use air shipping!"})
+            if country == "Malaysia2" and allow_shipping.air_east_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use air shipping!"})
+            if country == "Singapore" and allow_shipping.air_singapore == 0:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use air shipping!"})
+            if country == "Brunel" and allow_shipping.air_brunei == 0:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use air shipping!"})
+        if shippingi == "sea1":
+            if country == "Malaysia1" and allow_shipping.sea_bulky_west_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use this sea shipping!"})
+            if country == "Malaysia2" and allow_shipping.sea_bulky_east_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use sea shipping!"})
+            if country == "Singapore" and allow_shipping.sea_bulky_singapore == 0:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use sea shipping!"})
+            if country == "Brunel" and allow_shipping.sea_bulky_brunei == 0:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use sea shipping!"})
+        if shippingi == "sea2":
+            if country == "Malaysia1" and allow_shipping.sea_small_west_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use sea shipping!"})
+            if country == "Malaysia2" and allow_shipping.sea_small_east_malaysia == 0:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use sea shipping!"})
+            if country == "Singapore" and allow_shipping.sea_small_singapore == 0:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use sea shipping!"})
+            if country == "Brunel" and allow_shipping.sea_small_brunei == 0:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use sea shipping!"})
+
+
+
 
         if shippingi == "air":
             price = prices['air']
@@ -1547,6 +1585,7 @@ def pay_shipping(request):
                 shipping_rate= rate,
                 shipping_country= country,
                 address= address,
+                name= name,
                 phone= phone,
                 postcode= postcode,
             )
@@ -1574,8 +1613,8 @@ def pay_shipping(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : new_price*100,
-            'billReturnUrl' : 'http://127.0.0.1:8000/',
-            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1616,6 +1655,7 @@ def pay_shipping(request):
                 shipping_country= country,
                 address= address,
                 phone= phone,
+                name= name,
                 postcode= postcode,
             )
             shipping_product.save()
@@ -1643,8 +1683,8 @@ def pay_shipping(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : price*100,
-            'billReturnUrl' : 'http://127.0.0.1:8000/',
-            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1681,6 +1721,7 @@ def pay_shipping(request):
                 shipping_country= country,
                 address= address,
                 phone= phone,
+                name= name,
                 postcode= postcode,
             )
             shipping_product.save()
@@ -1695,7 +1736,40 @@ def calculate_shipping_price(request):
         ids = dict['ids']
         rate = dict['rate']
         country = dict['country']
+        shippingi = dict['shipping']
         dict_n = {}
+        print(country)
+        allowed_shippment = allow_shipping.objects.all()[0]
+
+
+        if shippingi == "air":
+            if country == "Malaysia1" and allowed_shippment.air_west_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use air shipping!"})
+            if country == "Malaysia2" and allowed_shippment.air_east_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use air shipping!"})
+            if country == "Singapore" and allowed_shippment.air_singapore == False:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use air shipping!"})
+            if country == "Brunel" and allowed_shippment.air_brunei == False:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use air shipping!"})
+        if shippingi == "sea1":
+            if country == "Malaysia1" and allowed_shippment.sea_bulky_west_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use this sea shipping!"})
+            if country == "Malaysia2" and allowed_shippment.sea_bulky_east_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use sea shipping!"})
+            if country == "Singapore" and allowed_shippment.sea_bulky_singapore == False:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use sea shipping!"})
+            if country == "Brunel" and allowed_shippment.sea_bulky_brunei == False:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use sea shipping!"})
+        if shippingi == "sea2":
+            print(allowed_shippment.sea_small_east_malaysia)
+            if country == "Malaysia1" and allowed_shippment.sea_small_west_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"West Malaysia can't use sea shipping!"})
+            if country == "Malaysia2" and allowed_shippment.sea_small_east_malaysia == False:
+                    return JsonResponse(status=404, data={'error': f"East Malaysia can't use sea shipping!"})
+            if country == "Singapore" and allowed_shippment.sea_small_singapore == False:
+                    return JsonResponse(status=404, data={'error': f"Singapore can't use sea shipping!"})
+            if country == "Brunel" and allowed_shippment.sea_small_brunei == False:
+                    return JsonResponse(status=404, data={'error': f"Brunel can't use sea shipping!"})
         for shipping_type in ['air', 'sea1', 'sea2']:
             w1 = 0
             w2 = 0
@@ -1845,8 +1919,8 @@ def recharge(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : amount*100,
-            'billReturnUrl' : 'http://127.0.0.1:8000/',
-            'billCallbackUrl' : 'http://127.0.0.1:8000/',
+            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,

@@ -52,7 +52,21 @@ class refundAdmin(admin.ModelAdmin):
 
 @admin.register(shipping)
 class shippingAdmin(admin.ModelAdmin):
-    list_display = ('IDs', 'client_email', 'client_id', 'shipping_price', 'shipping_choose', 'address', 'phone', 'postcode', 'shipping_rate', 'shipping_country', 'shipping_status', 'completed')
-    search_fields = ('client_email', 'sold_ids',)
+    list_display = ('IDs', 'client_email', 'name', 'client_id', 'shipping_price', 'shipping_choose', 'address', 'phone', 'postcode', 'shipping_rate', 'shipping_country', 'shipping_status', 'completed')
+    search_fields = ('client_email', 'name', 'sold_ids',)
     list_filter = ('completed',)
     list_editable = ['completed', 'shipping_status']
+
+
+@admin.register(history)
+class historyAdmin(admin.ModelAdmin):
+
+    list_display = ('client_email', 'value', 'notes', 'IN_or_OUT')
+    search_fields = ('client_email', 'IN_or_OUT', 'notes')
+    list_filter = ('client_email',)
+
+@admin.register(allow_shipping)
+class allow_shippingAdmin(admin.ModelAdmin):
+
+    list_display = ("id","air_west_malaysia","air_east_malaysia","air_singapore","air_brunei","sea_bulky_west_malaysia","sea_bulky_east_malaysia","sea_bulky_singapore","sea_bulky_brunei","sea_small_west_malaysia","sea_small_east_malaysia","sea_small_singapore","sea_small_brunei")
+    list_editable = ["air_west_malaysia","air_east_malaysia","air_singapore","air_brunei","sea_bulky_west_malaysia","sea_bulky_east_malaysia","sea_bulky_singapore","sea_bulky_brunei","sea_small_west_malaysia","sea_small_east_malaysia","sea_small_singapore","sea_small_brunei"]
