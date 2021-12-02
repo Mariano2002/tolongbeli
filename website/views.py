@@ -1036,7 +1036,7 @@ def addCart_shopee(request, item_id, variant, quantity):
     product_buy.save()
     # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
-    return HttpResponseRedirect("/shopee/"+items[0].url)
+    return redirect(my_orders)
 
 
 @login_required(login_url=login_page)
@@ -1072,7 +1072,7 @@ def addCart_tokopedia(request, item_id, variant, quantity):
     product_buy.save()
     # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
-    return HttpResponseRedirect("/tokopedia/"+items[0].url)
+    return redirect(my_orders)
 
 
 @csrf_exempt
