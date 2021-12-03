@@ -40,7 +40,10 @@ def user_is_not_logged_in(user):
 
 
 def home(request):
-    return render(request, 'index.html', {})
+    configurations = calc_conf.objects.all()[0]
+    markup = configurations.markup
+    convert_rate = configurations.convert_rate
+    return render(request, 'index.html', {'markup':int(markup), 'convert_rate':int(convert_rate)})
 
 
 @csrf_exempt
@@ -155,11 +158,17 @@ def shop(request):
                                                                "rating": int(product['item_basic']['item_rating']['rating_star']),
                                                                "url": str("-".join(product['item_basic']['name'].split(" ")) + "-i." + str(product['item_basic']['shopid']) + "." + str(product['item_basic']['itemid'])).encode('unicode_escape').decode("utf-8") , }
 
-        context = {'title': title, 'page': int(page), 'next': int(page)+1, 'previous': int(page)-1, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5]}
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        context = {'markup':int(markup), 'convert_rate':int(convert_rate), 'title': title, 'page': int(page), 'next': int(page)+1, 'previous': int(page)-1, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5]}
 
         return render(request, 'shop.html', context)
     else:
-        return render(request, 'shop.html', {})
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        return render(request, 'shop.html', {'markup':int(markup), 'convert_rate':int(convert_rate)})
 
 
 @user_passes_test(user_is_not_logged_in, login_url=home)
@@ -174,14 +183,19 @@ def login_page(request):
             return redirect(home)
         else:
             messages.info(request, 'Username or password in incorrect')
-            return render(request, 'login.html', {})
+            configurations = calc_conf.objects.all()[0]
+            markup = configurations.markup
+            convert_rate = configurations.convert_rate
+            return render(request, 'login.html', {'markup':int(markup), 'convert_rate':int(convert_rate)})
     else:
-        return render(request, 'login.html', {})
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        return render(request, 'login.html', {'markup':int(markup), 'convert_rate':int(convert_rate)})
 
 
 @user_passes_test(user_is_not_logged_in, login_url=home)
 def signup(request):
-    form = CreateUserForm()
 
     if request.method == "POST":
         form = CreateUserForm(request.POST)
@@ -190,8 +204,13 @@ def signup(request):
             user = form.cleaned_data.get('username')
             messages.success(request, f'Account was created for {user}')
             return redirect(login_page)
-    context = {"form":form}
-    return render(request, 'registration.html', context)
+    else:
+        form = CreateUserForm()
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        context = {'markup':int(markup), 'convert_rate':int(convert_rate), "form":form}
+        return render(request, 'registration.html', context)
 
 
 def logout_page(request):
@@ -296,7 +315,11 @@ def product_page_shopee(request, item_description):
         product['images'][nr] = "https://cf.shopee.co.id/file/"+product['images'][nr]
 
 
-    context_product_shopee = {   "id": product['itemid'],
+    configurations = calc_conf.objects.all()[0]
+    markup = configurations.markup
+    convert_rate = configurations.convert_rate
+    context_product_shopee = {  'markup':int(markup), 'convert_rate':int(convert_rate),
+                                "id": product['itemid'],
                                  "url": f"https://shopee.co.id/{item_description}",
                                  "name": product['name'],
                                  "images": product['images'],
@@ -837,7 +860,10 @@ def product_page_tokopedia(request, item_description):
                     shipping_price = int(int(u['price']['price']) + (int(u['price']['price']) *0.1))
 
 
-    context_product_tokopedia = {
+    configurations = calc_conf.objects.all()[0]
+    markup = configurations.markup
+    convert_rate = configurations.convert_rate
+    context_product_tokopedia = {'markup':int(markup), 'convert_rate':int(convert_rate),
                                                  "id": productKey,
                                                  "url": "https://www.tokopedia.com/"+item_description,
                                                  "name": name,
@@ -973,6 +999,11 @@ def my_orders(request):
         refund_form = refundForm()
         refund_form.fields["client_email"].initial = request.user.email
         context['refund_form'] = refund_form
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        context['markup'] = int(markup)
+        context['convert_rate'] = int(convert_rate)
         return render(request, 'my_orders.html', context)
 
 
@@ -1029,9 +1060,9 @@ def addCart_shopee(request, item_id, variant, quantity):
     )
 
     product_buy.save()
-    # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
-    return redirect(my_orders)
+    return HttpResponseRedirect("/shopee/"+items[0].url)
+
 
 
 @login_required(login_url=login_page)
@@ -1067,7 +1098,7 @@ def addCart_tokopedia(request, item_id, variant, quantity):
     product_buy.save()
     # return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
 
-    return redirect(my_orders)
+    return HttpResponseRedirect("/tokopedia/"+items[0].url)
 
 
 @csrf_exempt
@@ -1219,7 +1250,6 @@ def removeCart(request, item_id):
     cart.objects.get(id=item_id).delete()
     return redirect(my_orders)
 
-
 def calculator(request):
     if request.method == "POST":
 
@@ -1296,8 +1326,6 @@ def calculator(request):
             air_price = w2*rm+(w2*rm*markup)
             total_air_price = (w2*rm+(w2*rm*markup))+cost
 
-        context['air_price'] = round(air_price, 2)
-        context['total_air_price'] = round(total_air_price, 2)
 
 
 
@@ -1321,8 +1349,6 @@ def calculator(request):
             sea_price = (cbm - sea_1_min)*sea_1_price_over_min + sea_1_price_under_min
             total_sea_price = ((cbm - sea_1_min)*sea_1_price_over_min + sea_1_price_under_min)+cost
 
-        context['sea_price'] = round(sea_price, 2)
-        context['total_sea_price'] = round(total_sea_price, 2)
 
 
         #################### SEA 2 SHIPPING
@@ -1340,10 +1366,50 @@ def calculator(request):
             sea2_price = (w2 - sea_2_min)*sea_2_price_over_min + sea_2_price_under_min
             total_sea2_price = ((w2 - sea_2_min)*sea_2_price_over_min + sea_2_price_under_min)+cost
 
-        context['sea2_price'] = round(sea2_price, 2)
-        context['total_sea2_price'] = round(total_sea2_price, 2)
+        allowed_shippment = allow_shipping.objects.all()[0]
+
+        if country == "malaysia1" and allowed_shippment.air_west_malaysia == True:
+            context['air_price'] = round(air_price, 2)
+            context['total_air_price'] = round(total_air_price, 2)
+        if country == "malaysia2" and allowed_shippment.air_east_malaysia == True:
+            context['air_price'] = round(air_price, 2)
+            context['total_air_price'] = round(total_air_price, 2)
+        if country == "singapore" and allowed_shippment.air_singapore == True:
+            context['air_price'] = round(air_price, 2)
+            context['total_air_price'] = round(total_air_price, 2)
+        if country == "brunel" and allowed_shippment.air_brunei == True:
+            context['air_price'] = round(air_price, 2)
+            context['total_air_price'] = round(total_air_price, 2)
+
+        if country == "malaysia1" and allowed_shippment.sea_bulky_west_malaysia == True:
+            context['sea_price'] = round(sea_price, 2)
+            context['total_sea_price'] = round(total_sea_price, 2)
+        if country == "malaysia2" and allowed_shippment.sea_bulky_east_malaysia == True:
+            context['sea_price'] = round(sea_price, 2)
+            context['total_sea_price'] = round(total_sea_price, 2)
+        if country == "singapore" and allowed_shippment.sea_bulky_singapore == True:
+            context['sea_price'] = round(sea_price, 2)
+            context['total_sea_price'] = round(total_sea_price, 2)
+        if country == "brunel" and allowed_shippment.sea_bulky_brunei == True:
+            context['sea_price'] = round(sea_price, 2)
+            context['total_sea_price'] = round(total_sea_price, 2)
 
 
+        if country == "malaysia1" and allowed_shippment.sea_small_west_malaysia == True:
+            context['sea2_price'] = round(sea2_price, 2)
+            context['total_sea2_price'] = round(total_sea2_price, 2)
+        if country == "malaysia2" and allowed_shippment.sea_small_east_malaysia == True:
+            context['sea2_price'] = round(sea2_price, 2)
+            context['total_sea2_price'] = round(total_sea2_price, 2)
+        if country == "singapore" and allowed_shippment.sea_small_singapore == True:
+            context['sea2_price'] = round(sea2_price, 2)
+            context['total_sea2_price'] = round(total_sea2_price, 2)
+        if country == "brunel" and allowed_shippment.sea_small_brunei == True:
+            context['sea2_price'] = round(sea2_price, 2)
+            context['total_sea2_price'] = round(total_sea2_price, 2)
+
+        context['markup'] = int(markup)
+        context['convert_rate'] = int(convert_rate)
         return render(request, 'calculator.html', context)
     else:
         #
@@ -1370,7 +1436,10 @@ def calculator(request):
         # )
         # conf_obj.save()
 
-        return render(request, 'calculator.html', {})
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        return render(request, 'calculator.html', {'markup': int(markup), 'convert_rate': int(convert_rate)})
 
 
 def check_admin(user):
@@ -1474,7 +1543,10 @@ def change_bill(request):
         bill.save()
         return redirect(home)
     else:
-        return render(request, 'change_bill.html', {})
+        configurations = calc_conf.objects.all()[0]
+        markup = configurations.markup
+        convert_rate = configurations.convert_rate
+        return render(request, 'change_bill.html', {'markup': int(markup), 'convert_rate': int(convert_rate)})
 
 
 @csrf_exempt
@@ -1492,8 +1564,7 @@ def pay_shipping(request):
         address = dict['address']
         phone = dict['phone']
         postcode = dict['postcode']
-        print(country)
-        print(shippingi)
+
         allowed_shippment = allow_shipping.objects.all()[0]
         if shippingi == "air":
             if country == "Malaysia1" and allow_shipping.air_west_malaysia == 0:
@@ -1733,7 +1804,7 @@ def calculate_shipping_price(request):
         country = dict['country']
         shippingi = dict['shipping']
         dict_n = {}
-        print(country)
+
         allowed_shippment = allow_shipping.objects.all()[0]
 
 
@@ -1756,7 +1827,6 @@ def calculate_shipping_price(request):
             if country == "Brunel" and allowed_shippment.sea_bulky_brunei == False:
                     return JsonResponse(status=404, data={'error': f"Brunel can't use sea shipping!"})
         if shippingi == "sea2":
-            print(allowed_shippment.sea_small_east_malaysia)
             if country == "Malaysia1" and allowed_shippment.sea_small_west_malaysia == False:
                     return JsonResponse(status=404, data={'error': f"West Malaysia can't use sea shipping!"})
             if country == "Malaysia2" and allowed_shippment.sea_small_east_malaysia == False:

@@ -350,7 +350,7 @@
                                 <div class="mb-3">
                                     <label for="value">Value to withdraw</label>
                                     {{ refund_form.value.as_hidden }}
-                                    <input type="number" class="form-control" id="value" name="value" min="1">
+                                    <input type="number" class="form-control" id="value" name="value" min="1" max="{{ balance }}">
 
                                 </div>
 
@@ -417,7 +417,20 @@
 
 	<!-- JS here -->
         <script>
-
+            $(function () {
+              $("input").keydown(function () {
+                // Save old value.
+                if (!$(this).val() || (parseInt($(this).val()) <= {{ balance }} && parseInt($(this).val()) >= 1))
+                $(this).data("old", $(this).val());
+              });
+              $("input").keyup(function () {
+                // Check correct, else revert back to old value.
+                if (!$(this).val() || (parseInt($(this).val()) <= {{ balance }} && parseInt($(this).val()) >= 1))
+                  ;
+                else
+                  $(this).val($(this).data("old"));
+              });
+});
          function checkout() {
              document.getElementById("checkout").disabled = true;
              var params = new Object();

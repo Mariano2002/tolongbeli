@@ -9,7 +9,7 @@ class RequestLogger():
 
     def __call__(self, request):
         print(request.path)
-        if "/admin/website/sold" in request.path  or "/admin/website/soldmain/" in request.path:
+        if "/admin" in request.path  or "/admin/" in request.path:
             items = recharge_bills.objects.all().filter(bill_status="NOT PAID")
 
             for item in items:
@@ -17,7 +17,9 @@ class RequestLogger():
                     'billCode': item.bill_code,
                     'billpaymentStatus': '0'
                     }
+                print(item.bill_code)
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
+                print(json.loads(req.text)[0])
                 if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
                             item.bill_status = "PAID"
                             item.save()

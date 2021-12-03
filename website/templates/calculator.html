@@ -40,27 +40,30 @@
                                 </tr>
                               </thead>
                               <tbody>
-
+                                {% if air_price %}
                                 <tr>
                                   <td>{{ item_price }}</td>
                                   <td>Air Shipping</td>
                                   <td>{{ air_price }}</td>
                                   <td>{{ total_air_price }}</td>
                                 </tr>
-
+                                {% endif %}
+                                {% if sea_price %}
                                 <tr>
                                   <td>{{ item_price }}</td>
-                                  <td>Sea Shipping</td>
+                                  <td>Sea Bulky Shipping</td>
                                   <td>{{ sea_price }}</td>
                                   <td>{{ total_sea_price }}</td>
                                 </tr>
-
+                                {% endif %}
+                                {% if sea2_price %}
                                 <tr>
                                   <td>{{ item_price }}</td>
-                                  <td>Sea 2 Shipping</td>
+                                  <td>Sea Small Shipping</td>
                                   <td>{{ sea2_price }}</td>
                                   <td>{{ total_sea2_price }}</td>
                                 </tr>
+                                {% endif %}
                               </tbody>
                             </table>
                         </div>
@@ -94,8 +97,8 @@
 
                       <label for="country">Select Country:</label>
                       <select name="country" id="country" >
-                          <option value="malaysia1">Malaysia 1</option>
-                          <option value="malaysia2">Malaysia 2</option>
+                          <option value="malaysia1">West Malaysia</option>
+                          <option value="malaysia2">East Malaysia</option>
                           <option value="singapore">Singapore</option>
                           <option value="brunel">Brunel</option>
                       </select>
