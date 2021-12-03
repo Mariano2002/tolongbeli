@@ -41,6 +41,7 @@
                        {% csrf_token %}
                           <input type="search" class="form-control rounded" placeholder="Search with keyword or item link..." aria-label="Search"
                             aria-describedby="search-addon" name="Search" />
+                          <input type="number" value="1" name="page" hidden>
                           <input type="submit" value="Search" class="btn-outline-primary">
                 </div>
             </div>

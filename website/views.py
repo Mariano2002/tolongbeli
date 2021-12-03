@@ -47,7 +47,8 @@ def home(request):
 def shop(request):
     if request.method == "POST":
         title = request.POST.get("Search")
-
+        page = request.POST.get("page")
+        nr_page = (int(page) - 1) * 60
         regex = re.compile(
             r'^(?:http|ftp)s?://' 
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  
@@ -98,7 +99,7 @@ def shop(request):
             'content-length': '25794'
         }
         payload = [{'operationName': 'SearchProductQueryV4', 'variables': {
-            'params': f'device=desktop&page=1&q={keyword}&rows=60&safe_search=false&scheme=https&source=search&st=product&start=0'},
+            'params': f'device=desktop&page={page}&q={keyword}&rows=60&safe_search=false&scheme=https&source=search&st=product&start={nr_page}'},
                     'query': 'query SearchProductQueryV4($params: String!) {\n  ace_search_product_v4(params: $params) {\n    header {\n      totalData\n      totalDataText\n      processTime\n      responseCode\n      errorMessage\n      additionalParams\n      keywordProcess\n      __typename\n    }\n    data {\n      isQuerySafe\n      ticker {\n        text\n        query\n        typeId\n        __typename\n      }\n      redirection {\n        redirectUrl\n        departmentId\n        __typename\n      }\n      related {\n        relatedKeyword\n        otherRelated {\n          keyword\n          url\n          product {\n            id\n            name\n            price\n            imageUrl\n            rating\n            countReview\n            url\n            priceStr\n            wishlist\n            shop {\n              city\n              isOfficial\n              isPowerBadge\n              __typename\n            }\n            ads {\n              adsId: id\n              productClickUrl\n              productWishlistUrl\n              shopClickUrl\n              productViewUrl\n              __typename\n            }\n            badges {\n              title\n              imageUrl\n              show\n              __typename\n            }\n            ratingAverage\n            labelGroups {\n              position\n              type\n              title\n              url\n              __typename\n            }\n            __typename\n          }\n          __typename\n        }\n        __typename\n      }\n      suggestion {\n        currentKeyword\n        suggestion\n        suggestionCount\n        instead\n        insteadCount\n        query\n        text\n        __typename\n      }\n      products {\n        id\n        name\n        ads {\n          adsId: id\n          productClickUrl\n          productWishlistUrl\n          productViewUrl\n          __typename\n        }\n        badges {\n          title\n          imageUrl\n          show\n          __typename\n        }\n        category: departmentId\n        categoryBreadcrumb\n        categoryId\n        categoryName\n        countReview\n        discountPercentage\n        gaKey\n        imageUrl\n        labelGroups {\n          position\n          title\n          type\n          url\n          __typename\n        }\n        originalPrice\n        price\n        priceRange\n        rating\n        ratingAverage\n        shop {\n          id\n          name\n          url\n          city\n          isOfficial\n          isPowerBadge\n          __typename\n        }\n        url\n        wishlist\n        sourceEngine: source_engine\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n'}]
         res = requests.post('https://gql.tokopedia.com/', headers=headers, json=payload)
         listi = json.loads(res.text[1:-1])
@@ -108,7 +109,7 @@ def shop(request):
                                                 "image": product['imageUrl'],
                                                 "price": int(int(product['price'].replace("Rp","").replace(".",""))+(int(product['price'].replace("Rp","").replace(".",""))*0.1)),
                                                 "rating": int(product['rating']),
-                                                "url": product['url'].split("?")[0].replace("https://www.tokopedia.com/",""), }
+                                                "url": product['url'].split("?")[0].replace("https://www.tokopedia.com/","").encode('unicode_escape').decode("utf-8") , }
 
 
 
@@ -130,7 +131,7 @@ def shop(request):
         params = (('by', 'relevancy'),
             ('keyword', f'{title}'),
             ('limit', '60'),
-            ('newest', '0'),
+            ('newest', str(nr_page)),
             ('order', 'desc'),
             ('page_type', 'search'),
             ('scenario', 'PAGE_GLOBAL_SEARCH'),
@@ -148,19 +149,13 @@ def shop(request):
             #     price_1 = price_1[3:]
             price_2 = int(int(int(product['item_basic']['price'])/100000) + (int(int(product['item_basic']['price'])/100000)*0.1))
             context_shopee[product['item_basic']['itemid']] = {"name": product['item_basic']['name'],
-                                                               "image": "https://cf.shopee.co.id/file/" +
-                                                                        product['item_basic']['image'],
+                                                               "image": "https://cf.shopee.co.id/file/" + product['item_basic']['image'],
                                                                # "price": price_2[::-1],
                                                                "price": price_2,
-                                                               "rating": int(product['item_basic']['item_rating'][
-                                                                   'rating_star']),
-                                                               "url": str("-".join(
-                                                                   product['item_basic']['name'].split(
-                                                                       " ")) + "-i." + str(
-                                                                   product['item_basic']['shopid']) + "." + str(
-                                                                   product['item_basic']['itemid'])), }
+                                                               "rating": int(product['item_basic']['item_rating']['rating_star']),
+                                                               "url": str("-".join(product['item_basic']['name'].split(" ")) + "-i." + str(product['item_basic']['shopid']) + "." + str(product['item_basic']['itemid'])).encode('unicode_escape').decode("utf-8") , }
 
-        context = {'title': title, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5]}
+        context = {'title': title, 'page': int(page), 'next': int(page)+1, 'previous': int(page)-1, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5]}
 
         return render(request, 'shop.html', context)
     else:
@@ -219,7 +214,7 @@ def product_page_shopee(request, item_description):
         'sec-fetch-site': 'same-origin',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://shopee.co.id/{item_description}'.encode('cp1252'),
+        'referer': f'https://shopee.co.id/{item_description}'.encode('unicode_escape').decode("utf-8"),
         'accept-language': 'en-US,en;q=0.9',
         'if-none-match': '1bdac07452c0da90a6d8e6e48af99a6d',
     }
@@ -429,14 +424,14 @@ def product_page_tokopedia(request, item_description):
                         'sec-fetch-site': 'same-site',
                         'sec-fetch-mode': 'cors',
                         'sec-fetch-dest': 'empty',
-                        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
+                        'referer': f'https://www.tokopedia.com/{item_description}'.encode('unicode_escape').decode("utf-8"),
                         'accept-language': 'en-US,en;q=0.9',
                     }
                     s = requests.Session()
                     # proxy = getProxy()
                     # proxies = {'https': 'https://' + proxy}
 
-                    req = s.get("https://www.tokopedia.com/{item_description}".encode('cp1252'),
+                    req = s.get(f"https://www.tokopedia.com/{item_description}".encode('unicode_escape').decode("utf-8"),
                         headers=headers,
                         # proxies=proxies,
                         timeout=5)
@@ -721,7 +716,7 @@ def product_page_tokopedia(request, item_description):
         'sec-fetch-site': 'same-site',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
+        'referer': f'https://www.tokopedia.com/{item_description}'.encode('unicode_escape').decode("utf-8"),
         'accept-language': 'en-US,en;q=0.9',
     }
 
@@ -774,7 +769,7 @@ def product_page_tokopedia(request, item_description):
         'sec-fetch-site': 'same-site',
         'sec-fetch-mode': 'cors',
         'sec-fetch-dest': 'empty',
-        'referer': f'https://www.tokopedia.com/{item_description}'.encode('cp1252'),
+        'referer': f'https://www.tokopedia.com/{item_description}'.encode('unicode_escape').decode("utf-8"),
         'accept-language': 'en-US,en;q=0.9',
     }
 
@@ -1866,7 +1861,7 @@ def calculate_shipping_price(request):
                 else:
                     air_price = w2 * rm + (w2 * rm * markup)
 
-                dict_n['air'] = air_price
+                dict_n['air'] = round(air_price, 2)
 
             #################### SEA SHIPPING
             if shipping_type == "sea1":
@@ -1882,7 +1877,7 @@ def calculate_shipping_price(request):
                 else:
                     sea_1_price = (w2 - sea_1_min) * sea_1_price_over_min + sea_1_price_under_min
 
-                dict_n['sea1'] = sea_1_price
+                dict_n['sea1'] = round(sea_1_price, 2)
 
             #################### SEA 2 SHIPPING
 
@@ -1897,7 +1892,7 @@ def calculate_shipping_price(request):
                 else:
                     sea_2_price = (w2 - sea_2_min) * sea_2_price_over_min + sea_2_price_under_min
 
-                dict_n['sea2'] = sea_2_price
+                dict_n['sea2'] = round(sea_2_price, 2)
 
         return JsonResponse(status=302, data={"prices":dict_n})
 

@@ -56,6 +56,7 @@
                        {% csrf_token %}
                           <input type="search" class="form-control rounded" placeholder="Search with keyword or item link..." aria-label="Search"
                             aria-describedby="search-addon" name="Search" />
+                          <input type="number" value="1" name="page" hidden>
                           <input type="submit" value="Search" class="btn-outline-primary">
                 </div>
             </div>
@@ -151,8 +152,39 @@
                 </div>
             </section>
             <!-- Latest Products End -->
-
+        <div class="container text-right">
+            <div class="row text-right">
+                <div class="col-xl-5"></div>
+                <div class="col-xl-5">
+                    <nav aria-label="Page navigation example">
+                      <ul class="pagination">
+                          <form action="{% url 'catagori' %}" method="POST">
+                               {% csrf_token %}
+                                  <input type="search" value="{{ title }}" name="Search" hidden/>
+                                  <input type="number" value="{{ previous }}" name="page" hidden>
+                              {% if previous == 0 %}
+                                  <li class="page-item disabled"><input class="page-link" value="Previous" type="submit"></li>
+                              {% else %}
+                                  <li class="page-item"><input class="page-link" value="Previous" type="submit"></li>
+                              {% endif %}
+                          </form>
+                          <li class="page-item disabled"><input class="page-link" value="{{ page }}" type="submit"></li>
+                          <form action="{% url 'catagori' %}" method="POST">
+                               {% csrf_token %}
+                                  <input type="search" value="{{ title }}" name="Search" hidden/>
+                                  <input type="number" value="{{ next }}" name="page" hidden>
+                                  <li class="page-item"><input class="page-link" value="Next" type="submit"></li>
+                          </form>
+                      </ul>
+                    </nav>
+                    <br>
+                </div>
+            </div>
+        </div>
         {% endif %}
+
+
+
 
         <div class="latest-wrapper lf-padding">
             <div class="latest-area latest-height d-flex align-items-center" data-background="{% static 'assets/img/taken4.jpg' %}">

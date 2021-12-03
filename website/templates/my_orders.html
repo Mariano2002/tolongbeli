@@ -476,7 +476,7 @@
                 }
             }
             if (price !== 0) {
-                $("#to_pay2 h3").html("Total to pay " + String(price));
+                $("#to_pay2 h3").html("Total to pay " + String(Math.round(price * 100) / 100));
             }
             else {
 
