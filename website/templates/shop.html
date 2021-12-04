@@ -57,6 +57,7 @@
                           <input type="search" class="form-control rounded" placeholder="Search with keyword or item link..." aria-label="Search"
                             aria-describedby="search-addon" name="Search" />
                           <input type="number" value="1" name="page" hidden>
+                          <input type="text" id="top_nav1" value="{{ top_nav }}" name="top_nav" hidden>
                           <input type="submit" value="Search" class="btn-outline-primary">
                 </div>
             </div>
@@ -73,8 +74,13 @@
                                 <!--Nav Button  -->
                                 <nav>
                                     <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                                        <a class="nav-item nav-link" id="tokopedia" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Tokopedia</a>
-                                        <a class="nav-item nav-link active" id="shopee" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Shopee</a>
+                                        {% if top_nav == "tokopedia" %}
+                                            <a onclick="getElementById('top_nav1').value = this.id;getElementById('top_nav2').value = this.id;getElementById('top_nav3').value = this.id;" class="nav-item nav-link active" id="tokopedia" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Tokopedia</a>
+                                            <a onclick="getElementById('top_nav1').value = this.id;getElementById('top_nav2').value = this.id;getElementById('top_nav3').value = this.id;"" class="nav-item nav-link" id="shopee" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Shopee</a>
+                                        {% else %}
+                                            <a onclick="getElementById('top_nav1').value = this.id;getElementById('top_nav2').value = this.id;getElementById('top_nav3').value = this.id;"" class="nav-item nav-link" id="tokopedia" data-toggle="tab" href="#nav-home" role="tab" aria-controls="nav-home" aria-selected="true">Tokopedia</a>
+                                            <a onclick="getElementById('top_nav1').value = this.id;getElementById('top_nav2').value = this.id;getElementById('top_nav3').value = this.id;"" class="nav-item nav-link active" id="shopee" data-toggle="tab" href="#nav-profile" role="tab" aria-controls="nav-profile" aria-selected="false">Shopee</a>
+                                        {% endif %}
                                     </div>
                                 </nav>
                                 <!--End Nav Button  -->
@@ -83,7 +89,11 @@
                     <!-- Nav Card -->
                     <div class="tab-content" id="nav-tabContent">
                         <!-- card one -->
+                    {% if top_nav == "tokopedia" %}
+                        <div class="tab-pane fade show active" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                    {% else %}
                         <div class="tab-pane fade" id="nav-home" role="tabpanel" aria-labelledby="nav-home-tab">
+                    {% endif %}
                             <div class="row">
                                 {% for key, values in context_tokopedia.items %}
                                 <div class="col-xl-2 col-lg-4 col-md-6">
@@ -115,7 +125,12 @@
                             </div>
                         </div>
                         <!-- Card two -->
+
+                    {% if top_nav == "tokopedia" %}
+                        <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                    {% else %}
                         <div class="tab-pane fade show active" id="nav-profile" role="tabpanel" aria-labelledby="nav-profile-tab">
+                    {% endif %}
                             <div class="row">
                                 {% for key, values in context_shopee.items %}
                                 <div class="col-xl-2 col-lg-4 col-md-6">
@@ -162,6 +177,7 @@
                                {% csrf_token %}
                                   <input type="search" value="{{ title }}" name="Search" hidden/>
                                   <input type="number" value="{{ previous }}" name="page" hidden>
+                                  <input type="text" id="top_nav2" value="{{ top_nav }}" name="top_nav" hidden>
                               {% if previous == 0 %}
                                   <li class="page-item disabled"><input class="page-link" value="Previous" type="submit"></li>
                               {% else %}
@@ -173,6 +189,7 @@
                                {% csrf_token %}
                                   <input type="search" value="{{ title }}" name="Search" hidden/>
                                   <input type="number" value="{{ next }}" name="page" hidden>
+                                  <input type="text" id="top_nav3" value="{{ top_nav }}" name="top_nav" hidden>
                                   <li class="page-item"><input class="page-link" value="Next" type="submit"></li>
                           </form>
                       </ul>
@@ -215,7 +232,6 @@
 {% include 'footer.html' %}
    
 	<!-- JS here -->
-	
 		<!-- All JS Custom Plugins Link Here here -->
         <script src="{% static 'assets/js/vendor/modernizr-3.5.0.min.js' %}"></script>
 		

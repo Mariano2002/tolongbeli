@@ -20,7 +20,7 @@ class RequestLogger():
                 print(item.bill_code)
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
                 print(json.loads(req.text)[0])
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                             item.bill_status = "PAID"
                             item.save()
                             walleti = wallet.objects.all().filter(client_email=item.client_email)[0]
@@ -98,7 +98,7 @@ class RequestLogger():
                     'billpaymentStatus': '0'
                     }
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                         items = order_bills.objects.all().filter(bill_code=bill_code)
                         for item in items:
                             item.bill_status = "PAID"
@@ -144,7 +144,7 @@ class RequestLogger():
                     'billpaymentStatus': '0'
                     }
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                         items = shipping_bills.objects.all().filter(bill_code=bill_code)
                         for item in items:
                             item.bill_status = "PAID"
@@ -171,7 +171,7 @@ class RequestLogger():
                 }
                 try:
                     req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                    if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+                    if json.loads(req.text)[0]['billpaymentStatus'] == "1":
                         i.bill_status = "PAID"
                         i.save()
                         hist = history.objects.create(
@@ -198,7 +198,7 @@ class RequestLogger():
                     'billpaymentStatus': '0'
                     }
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                             item.bill_status = "PAID"
                             item.save()
                             walleti = wallet.objects.all().filter(client_email=item.client_email)[0]
@@ -276,7 +276,7 @@ class RequestLogger():
                     'billpaymentStatus': '0'
                     }
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                         items = order_bills.objects.all().filter(bill_code=bill_code, client_email=request.user.email)
                         for item in items:
                             item.bill_status = "PAID"
@@ -324,7 +324,7 @@ class RequestLogger():
                     }
                 req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
                 print(req.text)
-                if json.loads(req.text)[0]['billpaymentStatus'] != "1": #change all these
+                if json.loads(req.text)[0]['billpaymentStatus'] == "1": #change all these
                         items = shipping_bills.objects.all().filter(bill_code=bill_code)
                         for item in items:
                             item.bill_status = "PAID"
@@ -356,7 +356,7 @@ class RequestLogger():
                 try:
                     req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
                     print(req.text)
-                    if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+                    if json.loads(req.text)[0]['billpaymentStatus'] == "1":
                         i.bill_status = "PAID"
                         i.save()
                         hist = history.objects.create(
@@ -387,7 +387,7 @@ class RequestLogger():
             #         }
             #         try:
             #             req = requests.post('https://toyyibpay.com/index.php/api/getBillTransactions', data=data)
-            #             if json.loads(req.text)[0]['billpaymentStatus'] != "1":
+            #             if json.loads(req.text)[0]['billpaymentStatus'] == "1":
             #                 i.shipping_status = "NOT SHIPPED"
             #                 i.save()
             #         except:

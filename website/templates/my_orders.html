@@ -308,10 +308,13 @@
                         <div class="row justify-content-center">
                             <div class="col-lg-12">
                                 <h3 class="text-center">Recharge your wallet</h3>
-                                <form action="{% url 'recharge' %}" method="POST">
+                                <form action="{% url 'recharge' %}" class="needs-validation" method="POST" novalidate>
                                     {% csrf_token %}
                                     <label for="address">Value</label>
-                                    <input type="number" class="form-control" id="charge_number" name="charge_number" value="1" min="1" >
+                                    <input type="number" class="form-control" id="charge_number" name="charge_number" value="1" min="1" required>
+                                      <div class="invalid-feedback">
+                                        Please choose a username.
+                                      </div>
                                     <br>
                                     <div class="text-right">
                                     <button type="submit" class="btn_1" style="text-align: right">Recharge</button>
@@ -323,14 +326,17 @@
                         <div class="row justify-content-center">
                             <div class="col-md-12">
                               <h3 class="text-center">Ask for a Refund</h3>
-                              <form class="needs-validation" novalidate="" method="POST">
+
+                              <form class="needs-validation" novalidate method="POST">
                                 {% csrf_token %}
                                 <div class="mb-3">
                                   <label for="name">Name</label>
                                     {{ refund_form.name.as_hidden }}
-                                  <input type="text" class="form-control" id="name" name="name" placeholder="Name" required="">
+                                  <input type="text" class="form-control" id="name" name="name" placeholder="Name" required>
                                     {{ refund_form.client_email.as_hidden }}
-
+                                  <div class="invalid-feedback">
+                                    Please choose a username.
+                                  </div>
                                 </div>
 
                                 <div class="mb-3">
@@ -357,6 +363,9 @@
 
                                 <br>
                                 <div class="text-right">
+                                {% for message in messages %}
+                                    <p class="message_submit_form text-danger">{{ message }}</p>
+                                {% endfor %}
                                 <input class="btn_1" type="submit" value="Ask for Refund" />
                                 </div>
                               </form>
@@ -418,19 +427,19 @@
 	<!-- JS here -->
         <script>
             $(function () {
-              $("input").keydown(function () {
+              $("#value").keydown(function () {
                 // Save old value.
                 if (!$(this).val() || (parseInt($(this).val()) <= {{ balance }} && parseInt($(this).val()) >= 1))
                 $(this).data("old", $(this).val());
               });
-              $("input").keyup(function () {
+              $("#value").keyup(function () {
                 // Check correct, else revert back to old value.
                 if (!$(this).val() || (parseInt($(this).val()) <= {{ balance }} && parseInt($(this).val()) >= 1))
                   ;
                 else
                   $(this).val($(this).data("old"));
               });
-});
+            });
          function checkout() {
              document.getElementById("checkout").disabled = true;
              var params = new Object();

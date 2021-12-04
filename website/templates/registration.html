@@ -149,11 +149,11 @@
                                 Please Sign up now</h3>
 
                                 {% for message in messages %}
-                                    <p class="message_submit_form">{{ message }}</p>
+                                    <p class="message_submit_form text-danger">{{ message }}</p>
                                 {% endfor %}
                                 {% for field, errors in form.errors.items %}
                                     {% for error in errors %}
-                                        <p class="message_submit_form">{{ error }}</p>
+                                        <p class="message_submit_form text-danger">{{ error }}</p>
                                     {% endfor %}
                                 {% endfor %}
                             <form class="row contact_form" action="" method="POST" id="form">

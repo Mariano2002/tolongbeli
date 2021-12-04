@@ -51,6 +51,7 @@ def shop(request):
     if request.method == "POST":
         title = request.POST.get("Search")
         page = request.POST.get("page")
+        top_nav = request.POST.get("top_nav")
         nr_page = (int(page) - 1) * 60
         regex = re.compile(
             r'^(?:http|ftp)s?://' 
@@ -161,14 +162,15 @@ def shop(request):
         configurations = calc_conf.objects.all()[0]
         markup = configurations.markup
         convert_rate = configurations.convert_rate
-        context = {'markup':int(markup), 'convert_rate':int(convert_rate), 'title': title, 'page': int(page), 'next': int(page)+1, 'previous': int(page)-1, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5]}
+        context = {'markup':int(markup), 'convert_rate':int(convert_rate), 'title': title, 'page': int(page), 'next': int(page)+1, 'previous': int(page)-1, 'context_tokopedia': context_tokopedia, 'context_shopee': context_shopee, 'list_numbers': [1,2,3,4,5], 'top_nav':top_nav}
 
         return render(request, 'shop.html', context)
     else:
+        top_nav = 'tokopedia'
         configurations = calc_conf.objects.all()[0]
         markup = configurations.markup
         convert_rate = configurations.convert_rate
-        return render(request, 'shop.html', {'markup':int(markup), 'convert_rate':int(convert_rate)})
+        return render(request, 'shop.html', {'markup':int(markup), 'convert_rate':int(convert_rate), 'top_nav':top_nav})
 
 
 @user_passes_test(user_is_not_logged_in, login_url=home)
@@ -910,12 +912,14 @@ def product_page_tokopedia(request, item_description):
 @login_required(login_url=login_page)
 def my_orders(request):
     if request.method == 'POST':
-        form = refundForm(request.POST)
-        if form.is_valid():
+        try:
+            form = refundForm(request.POST)
             form.save()
             return redirect(my_orders)
+        except:
+            messages.info(request, 'Please fill all the fields with correct values!')
+            return redirect(my_orders)
     else:
-
         def convert_price(price1):
             price_1 = price1[::-1]
             price_2 = ''
@@ -1970,43 +1974,45 @@ def calculate_shipping_price(request):
 @login_required(login_url=login_page)
 def recharge(request):
     if request.method == "POST":
-        amount = float(request.POST.get("charge_number"))
+        try:
+            amount = float(request.POST.get("charge_number"))
 
-        str_id = str(request.user.id)
-        while len(str_id) < 6:
-            str_id = "0"+str_id
+            str_id = str(request.user.id)
+            while len(str_id) < 6:
+                str_id = "0"+str_id
 
-            data = {
-            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-            'categoryCode' : '6elrtbk8',
-            'billName' : 'Purchase from Tolongbeli',
-            'billDescription' : "Recharging your wallet",
-            'billPriceSetting' : 1,
-            'billPayorInfo' : 0,
-            'billAmount' : amount*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billExternalReferenceNo' : "MY"+str_id,
-            'billTo' : request.user.username,
-            'billEmail' : request.user.email,
-            'billPhone' : "",
-            'billSplitPayment' : 0,
-            'billSplitPaymentArgs' : '',
-            'billPaymentChannel' : '0',
-            'billContentEmail' : 'Thank you for the recharge!',
-            'billChargeToCustomer' : 2,
-            }
-            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+                data = {
+                'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+                'categoryCode' : '6elrtbk8',
+                'billName' : 'Purchase from Tolongbeli',
+                'billDescription' : "Recharging your wallet",
+                'billPriceSetting' : 1,
+                'billPayorInfo' : 0,
+                'billAmount' : amount*100,
+                'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
+                'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
+                'billExternalReferenceNo' : "MY"+str_id,
+                'billTo' : request.user.username,
+                'billEmail' : request.user.email,
+                'billPhone' : "",
+                'billSplitPayment' : 0,
+                'billSplitPaymentArgs' : '',
+                'billPaymentChannel' : '0',
+                'billContentEmail' : 'Thank you for the recharge!',
+                'billChargeToCustomer' : 2,
+                }
+                req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
 
-            bill_code = json.loads(req.text)[0]['BillCode']
+                bill_code = json.loads(req.text)[0]['BillCode']
 
-            bill = recharge_bills.objects.create(
-                bill_code=bill_code,
-                client_email=request.user.email,
-                client_id=str_id,
-                amount=amount
-            )
-            bill.save()
-            return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
-
+                bill = recharge_bills.objects.create(
+                    bill_code=bill_code,
+                    client_email=request.user.email,
+                    client_id=str_id,
+                    amount=amount
+                )
+                bill.save()
+                return HttpResponseRedirect(f"https://toyyibpay.com/{bill_code}")
+        except:
+            return redirect(my_orders)
 

@@ -39,13 +39,13 @@
                             <h3>Welcome Back! <br>
                                 Please Sign in now</h3>
                                 {% for message in messages %}
-                                    <p class="message_submit_form">{{ message }}</p>
+                                    <p class="message_submit_form  text-danger">{{ message }}</p>
                                 {% endfor %}
                             <form class="row contact_form" action="" method="post">
                                 {% csrf_token %}
                                 {% for field, errors in form.errors.items %}
                                     {% for error in errors %}
-                                        <p class="message_submit_form">{{ error }}</p>
+                                        <p class="message_submit_form text-danger">{{ error }}</p>
                                     {% endfor %}
                                 {% endfor %}
                                 <div class="col-md-12 form-group p_star">
