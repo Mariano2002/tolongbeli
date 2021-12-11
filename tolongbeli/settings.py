@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'website',
+    'totalsum',
 ]
 
 MIDDLEWARE = [
@@ -125,9 +126,10 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 
+DEFAULT_FROM_EMAIL = 'noreply@tolongbeli.com.my'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'marianobaci46@gmail.com'
-EMAIL_HOST_PASSWORD = "mycgaihtnmlmenwi"
+EMAIL_HOST = 'smtp.hostinger.com'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'noreply@tolongbeli.com.my'
+EMAIL_HOST_PASSWORD = "Wfhs9#ZQ:fBc"

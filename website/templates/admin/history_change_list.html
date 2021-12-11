@@ -1,0 +1,17 @@
+{% extends 'admin/change_list.html' %}
+{% block object-tools %}
+    {{ block.super }}
+<h1 id="balance"></h1>
+<script type="text/javascript">
+function codeAddress() {
+    console.log(document.getElementsByClassName("selected")[0].textContent)
+    {% for wallet in some_var %}
+        if (document.getElementsByClassName("selected")[0].textContent.includes("{{ wallet.client_email }}")){
+            console.log({{ wallet.balance }})
+            document.getElementById("balance").innerHTML = "Wallet Balance: {{ wallet.balance }}"
+        }
+    {% endfor %}
+}
+window.onload = codeAddress;
+</script>
+{% endblock object-tools %}

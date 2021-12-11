@@ -58,12 +58,44 @@ class shippingAdmin(admin.ModelAdmin):
     list_editable = ['completed', 'shipping_status']
 
 
+# @admin.register(history)
+# class historyAdmin(admin.ModelAdmin):
+#
+#     list_display = ('client_email', 'value', 'notes', 'IN_or_OUT')
+#     search_fields = ('client_email', 'IN_or_OUT', 'notes')
+#     list_filter = ('client_email',)
+
+def changelist_view(self, request, extra_context=None):
+    response = super(ShopAdmin, self).changelist_view(request, extra_context)
+    extra_context = {
+        'myvar': 'whateveryouwant'
+    }
+    try:
+        response.context_data.update(extra_context)
+    except Exception as e:
+        pass
+    return response
+
+# @admin.register(history)
+# class historyAdmin(admin.ModelAdmin, extr):
+#
+#     list_display = ('client_email', 'value', 'notes', 'IN_or_OUT')
+#     search_fields = ('client_email', 'IN_or_OUT', 'notes')
+#     list_filter = ('client_email',)
+#     change_list_template = 'admin/history_change_list.html'
+
+
 @admin.register(history)
 class historyAdmin(admin.ModelAdmin):
-
     list_display = ('client_email', 'value', 'notes', 'IN_or_OUT')
     search_fields = ('client_email', 'IN_or_OUT', 'notes')
     list_filter = ('client_email',)
+
+    change_list_template = 'admin/history_change_list.html'
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['some_var'] = wallet.objects.all()
+        return super(historyAdmin, self).changelist_view(request, extra_context=extra_context)
 
 @admin.register(allow_shipping)
 class allow_shippingAdmin(admin.ModelAdmin):

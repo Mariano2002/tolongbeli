@@ -20,7 +20,7 @@
                         </div>
                     </div>
                 </div>
-    </div>
+            </div>
             <!-- slider Area End-->
 
             {% if item_price %}
@@ -76,15 +76,17 @@
             </div>
             {% else %}
             <div class="row justify-content-md-center text-center">
-                <div class="col col-lg-2">
+                <div class="col-lg-2 col-xl-2 col-sm-12 col-md-12">
 
-                  <div class="main-price" style="float:right;">
+                  <div class="main-price">
 
                     <label for="item_price" >Item Price:&nbsp;</label>
-                    <input type="number" step="0.01" name="item_price" id="item_price"  />
+                      <br>
+                    <input type="number" step="0.01" name="item_price" id="item_price" style="width: 150px;">
                       <br>
                     <label for="domestic" >Domestic:&nbsp;&nbsp;</label>
-                    <input type="number" step="0.01" name="domestic" id="domestic" />
+                      <br>
+                    <input type="number" step="0.01" name="domestic" id="domestic" style="width: 150px;">
 
 
                   </div>
@@ -92,10 +94,10 @@
                     <br>
                 </div>
 
-                <div style="border-left: 1px dashed #333;" class="col col-lg-2">
+                <div style="border-left: 1px dashed #333;" class="col-lg-2 col-xl-2 col-sm-12 col-md-12">
                   <div class="options">
 
-                      <label for="country">Select Country:</label>
+                      <label for="country">Select Country:</label><br>
                       <select name="country" id="country" >
                           <option value="malaysia1">West Malaysia</option>
                           <option value="malaysia2">East Malaysia</option>
@@ -113,20 +115,21 @@
                   </div>
                 </div>
 
-                <div style="border-left: 1px dashed #333;" class="col col-lg-2" style="float:left;">
+                <div style="border-left: 1px dashed #333;" class="col-lg-2 col-xl-2 col-sm-12 col-md-12">
                   <div class="dimensions">
 
+
                     <label for="length">Length:</label>
-                    <input type="number" step="0.01" name="length" id="length" />
+                    <input type="number" step="0.01" name="length" id="length" style="width: 100px; padding-right:20px;"/><span style="margin-left:-30px;">cm</span>
                     <br>
                     <label for="width">Width:&nbsp;&nbsp;</label>
-                    <input type="number" step="0.01" name="width" id="width" />
+                    <input type="number" step="0.01" name="width" id="width" style="width: 100px;padding-right:20px;" /><span style="margin-left:-30px;">cm</span>
                     <br>
                     <label for="height">Height:&nbsp;</label>
-                    <input type="number" step="0.01" name="height" id="height" />
+                    <input type="number" step="0.01" name="height" id="height" style="width: 100px;padding-right:20px;" /><span style="margin-left:-30px;">cm</span>
                     <br>
                     <label for="weight">Weight:</label>
-                    <input type="number" step="0.01" name="weight" id="weight" />
+                    <input type="number" step="0.01" name="weight" id="weight" style="width: 100px;padding-right:20px;" /><span style="margin-left:-30px;">cm</span>
 
                   </div>
                 </div>

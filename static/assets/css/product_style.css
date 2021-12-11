@@ -209,13 +209,11 @@ html, body {
     width: 300px;
     right: 0;
     top: -65px;
-    left: initial;
   }
 }
 
-@media (max-width: 535px) {
-  .left-column img {
-    width: 220px;
-    top: -85px;
+@media (min-width: 940px) {
+  .right-column {
+    padding-left: 50px;
   }
 }
