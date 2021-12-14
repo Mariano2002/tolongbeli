@@ -440,7 +440,30 @@
                   $(this).val($(this).data("old"));
               });
             });
+
          function checkout() {
+             var price = parseFloat(0)
+             var trs1 = document.getElementById("cart").getElementsByTagName("tr")
+             for (let item of trs1) {
+
+                 try {
+                     if (item.getElementsByTagName("td")[8].getElementsByTagName("input")[0].checked === true){
+                         console.log("eshte")
+                         price = price + parseFloat(item.getElementsByTagName("td")[5].innerText)
+                     }
+                 }
+                 catch {
+
+                 }
+             }
+             if (price > parseFloat("{{ balance }}")){
+                var r = confirm("You don't have enough funds on your wallet. Do you want to pay with a bill? If no, press cancel and recharge you wallet.");
+                  if (r==false)
+                    {
+                        return
+                    }
+             }
+
              document.getElementById("checkout").disabled = true;
              var params = new Object();
              var trs = document.getElementById("cart").getElementsByTagName("tr")
@@ -577,6 +600,7 @@
               if (!allAreFilled) {
                 return
               }
+
             document.getElementById("shipout").disabled = true;
             address = document.getElementById("address").value
             postcode = document.getElementById("postcode").value;
@@ -614,6 +638,15 @@
                     if (this.readyState == 4 && this.status == 302) {
                         var json = JSON.parse(this.responseText);
                         console.log(json.success);
+                        var price = json.prices[shipping]
+
+                         if (price > parseFloat("{{ balance }}")){
+                            var r = confirm("You don't have enough funds on your wallet. Do you want to pay with a bill? If no, press cancel and recharge you wallet.");
+                              if (r==false)
+                                {
+                                    return
+                                }
+                         }
                         var params = {
                             "ids": ids,
                             "shipping": shipping,
@@ -626,6 +659,8 @@
                             "name" : name,
                             "phone" : phone,
                         }
+                         console.log(json.prices)
+                         console.log(shipping)
                         var http1 = new XMLHttpRequest();
                         var url1 = "/pay_shipping";
                         http1.onreadystatechange = function () {

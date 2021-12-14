@@ -429,7 +429,7 @@ def product_page_tokopedia(request, item_description):
             self.outfile = outfile
 
         def run(self):
-            global prods
+            global prods, weight
 
             while not self.stopped():
                 try:
@@ -521,6 +521,7 @@ def product_page_tokopedia(request, item_description):
                     prods = resi.text
                     products = json.loads(prods[1:-1])
                     weight = int(str(products['data']['pdpGetLayout']['basicInfo']['weight']))/1000
+                    # print(weight)
                     res = resi
                 except:
                     pass
@@ -669,7 +670,7 @@ def product_page_tokopedia(request, item_description):
     # models2 = []
     prices = []
 
-    weight = int(str(products['data']['pdpGetLayout']['basicInfo']['weight']))/1000
+    # weight = int(str(products['data']['pdpGetLayout']['basicInfo']['weight']))/1000
 
     name = json.loads(products['data']['pdpGetLayout']['pdpSession'])['pn']
 
@@ -1000,6 +1001,7 @@ def my_orders(request):
         hist = history.objects.all().filter(client_email=request.user.email)
         context['history'] = hist
 
+
         refund_form = refundForm()
         refund_form.fields["client_email"].initial = request.user.email
         context['refund_form'] = refund_form
@@ -1149,51 +1151,51 @@ def buy(request):
 
                 bill.save()
             return JsonResponse(status=302, data={'success': f"/my_orders"})
-        elif balance != 0:
-
-            new_price = round(price - balance, 2)
-
-            data = {
-            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-            'categoryCode' : '6elrtbk8',
-            'billName' : 'Purchase from Tolongbeli',
-            'billDescription' : "Paying for your product(s)",
-            'billPriceSetting' : 1,
-            'billPayorInfo' : 0,
-            'billAmount' : new_price*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billExternalReferenceNo' : "MY"+str_id,
-            'billTo' : request.user.username,
-            'billEmail' : request.user.email,
-            'billPhone' : "",
-            'billSplitPayment' : 0,
-            'billSplitPaymentArgs' : '',
-            'billPaymentChannel' : '0',
-            'billContentEmail' : 'Thank you for purchasing our product(s)!',
-            'billChargeToCustomer' : 2,
-            }
-            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-
-            bill_code = json.loads(req.text)[0]['BillCode']
-
-            for id in ids:
-
-                bill = order_bills.objects.create(
-                    cart_id = id,
-                    bill_code = bill_code,
-                    client_email=request.user.email,
-                    client_id=str_id,
-                    notes=f"Total was {price} - {balance} paid from balance;"
-                )
-
-                bill.save()
-
-                item.balance = 0
-                item.save()
-
-            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
-
+        # elif balance != 0:
+        #
+        #     new_price = round(price - balance, 2)
+        #
+        #     data = {
+        #     'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+        #     'categoryCode' : '6elrtbk8',
+        #     'billName' : 'Purchase from Tolongbeli',
+        #     'billDescription' : "Paying for your product(s)",
+        #     'billPriceSetting' : 1,
+        #     'billPayorInfo' : 0,
+        #     'billAmount' : new_price*100,
+        #     'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+        #     'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
+        #     'billExternalReferenceNo' : "MY"+str_id,
+        #     'billTo' : request.user.username,
+        #     'billEmail' : request.user.email,
+        #     'billPhone' : "",
+        #     'billSplitPayment' : 0,
+        #     'billSplitPaymentArgs' : '',
+        #     'billPaymentChannel' : '0',
+        #     'billContentEmail' : 'Thank you for purchasing our product(s)!',
+        #     'billChargeToCustomer' : 2,
+        #     }
+        #     req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+        #
+        #     bill_code = json.loads(req.text)[0]['BillCode']
+        #
+        #     for id in ids:
+        #
+        #         bill = order_bills.objects.create(
+        #             cart_id = id,
+        #             bill_code = bill_code,
+        #             client_email=request.user.email,
+        #             client_id=str_id,
+        #             notes=f"Total was {price} - {balance} paid from balance;"
+        #         )
+        #
+        #         bill.save()
+        #
+        #         item.balance = 0
+        #         item.save()
+        #
+        #     return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+        #
 
         else:
 
@@ -1205,8 +1207,8 @@ def buy(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : price*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+            'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1522,8 +1524,8 @@ def change_bill(request):
             'billPriceSetting': 1,
             'billPayorInfo': 0,
             'billAmount': float(new_price)*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+            'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
             'billExternalReferenceNo': "MY" + str_id,
             'billTo': email,
             'billEmail': email,
@@ -1639,8 +1641,7 @@ def pay_shipping(request):
                 product_ids=json.dumps(ids),
                 bill_code="balance",
                 client_email=request.user.email,
-                client_id=str_id,
-                notes=f"Total was {price} - {price} paid from balance;"
+                client_id=str_id
             )
             bill.save()
 
@@ -1673,75 +1674,75 @@ def pay_shipping(request):
             # item.shipping_country = country
             # item.save()
             return JsonResponse(status = 302 , data = {'success' : f"/my_orders" })
-        elif balance != 0:
-            new_price = round(price - balance, 2)
-            data = {
-            'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
-            'categoryCode' : '6elrtbk8',
-            'billName' : 'Purchase from Tolongbeli',
-            'billDescription' : "Shipping fee for product(s) "+ ", ".join(ids),
-            'billPriceSetting' : 1,
-            'billPayorInfo' : 0,
-            'billAmount' : new_price*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billExternalReferenceNo' : "MY"+str_id,
-            'billTo' : request.user.username,
-            'billEmail' : request.user.email,
-            'billPhone' : "",
-            'billSplitPayment' : 0,
-            'billSplitPaymentArgs' : '',
-            'billPaymentChannel' : '0',
-            'billContentEmail' : 'Thank you for purchasing our product!',
-            'billChargeToCustomer' : 2,
-            }
-            req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
-
-            bill_code = json.loads(req.text)[0]['BillCode']
-
-
-
-
-            bill = shipping_bills.objects.create(
-                product_ids = json.dumps(ids),
-                bill_code = bill_code,
-                client_email=request.user.email,
-                client_id=str_id,
-                notes=f"Total was {price} - {balance} paid from balance;"
-            )
-            bill.save()
-
-            item.balance = 0
-            item.save()
-
-
-            shipping_product = shipping.objects.create(
-                sold_ids = json.dumps(ids),
-                shipping_price = price,
-                client_email=request.user.email,
-                client_id=str_id,
-                shipping_choose = shipping_choose,
-                shipping_rate= rate,
-                shipping_country= country,
-                address= address,
-                phone= phone,
-                name= name,
-                postcode= postcode,
-            )
-            shipping_product.save()
-
-                # item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
-                # item.shipping_price = data1[id]
-                # if shipping == "air":
-                #     item.shipping_choose = "Air"
-                # if shipping == "sea1":
-                #     item.shipping_choose = "Sea 1"
-                # if shipping == "sea2":
-                #     item.shipping_choose = "Sea 2"
-                # item.shipping_rate = rate
-                # item.shipping_country = country
-                # item.save()
-            return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
+        # elif balance != 0:
+        #     new_price = round(price - balance, 2)
+        #     data = {
+        #     'userSecretKey' : 'lctchung-fg0p-uubc-qlpt-iqg51fc1954s',
+        #     'categoryCode' : '6elrtbk8',
+        #     'billName' : 'Purchase from Tolongbeli',
+        #     'billDescription' : "Shipping fee for product(s) "+ ", ".join(ids),
+        #     'billPriceSetting' : 1,
+        #     'billPayorInfo' : 0,
+        #     'billAmount' : new_price*100,
+        #     'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+        #     'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
+        #     'billExternalReferenceNo' : "MY"+str_id,
+        #     'billTo' : request.user.username,
+        #     'billEmail' : request.user.email,
+        #     'billPhone' : "",
+        #     'billSplitPayment' : 0,
+        #     'billSplitPaymentArgs' : '',
+        #     'billPaymentChannel' : '0',
+        #     'billContentEmail' : 'Thank you for purchasing our product!',
+        #     'billChargeToCustomer' : 2,
+        #     }
+        #     req = requests.post('https://toyyibpay.com/index.php/api/createBill', data=data)
+        #
+        #     bill_code = json.loads(req.text)[0]['BillCode']
+        #
+        #
+        #
+        #
+        #     bill = shipping_bills.objects.create(
+        #         product_ids = json.dumps(ids),
+        #         bill_code = bill_code,
+        #         client_email=request.user.email,
+        #         client_id=str_id,
+        #         notes=f"Total was {price} - {balance} paid from balance;"
+        #     )
+        #     bill.save()
+        #
+        #     item.balance = 0
+        #     item.save()
+        #
+        #
+        #     shipping_product = shipping.objects.create(
+        #         sold_ids = json.dumps(ids),
+        #         shipping_price = price,
+        #         client_email=request.user.email,
+        #         client_id=str_id,
+        #         shipping_choose = shipping_choose,
+        #         shipping_rate= rate,
+        #         shipping_country= country,
+        #         address= address,
+        #         phone= phone,
+        #         name= name,
+        #         postcode= postcode,
+        #     )
+        #     shipping_product.save()
+        #
+        #         # item = sold.objects.all().filter(id=id, client_email=request.user.email)[0]
+        #         # item.shipping_price = data1[id]
+        #         # if shipping == "air":
+        #         #     item.shipping_choose = "Air"
+        #         # if shipping == "sea1":
+        #         #     item.shipping_choose = "Sea 1"
+        #         # if shipping == "sea2":
+        #         #     item.shipping_choose = "Sea 2"
+        #         # item.shipping_rate = rate
+        #         # item.shipping_country = country
+        #         # item.save()
+        #     return JsonResponse(status = 302 , data = {'success' : f"https://toyyibpay.com/{bill_code}" })
 
 
         else:
@@ -1753,8 +1754,8 @@ def pay_shipping(request):
             'billPriceSetting' : 1,
             'billPayorInfo' : 0,
             'billAmount' : price*100,
-            'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-            'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
+            'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+            'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
             'billExternalReferenceNo' : "MY"+str_id,
             'billTo' : request.user.username,
             'billEmail' : request.user.email,
@@ -1775,8 +1776,7 @@ def pay_shipping(request):
                 product_ids = json.dumps(ids),
                 bill_code = bill_code,
                 client_email=request.user.email,
-                client_id=str_id,
-                notes=f"Total was {price} - 0 paid from balance;"
+                client_id=str_id
             )
             bill.save()
 
@@ -1989,8 +1989,8 @@ def recharge(request):
                 'billPriceSetting' : 1,
                 'billPayorInfo' : 0,
                 'billAmount' : amount*100,
-                'billReturnUrl' : 'http://103.171.26.128:8001/my_orders',
-                'billCallbackUrl' : 'http://103.171.26.128:8001/my_orders',
+                'billReturnUrl' : 'https://belanjaseberang.com/my_orders',
+                'billCallbackUrl' : 'https://belanjaseberang.com/my_orders',
                 'billExternalReferenceNo' : "MY"+str_id,
                 'billTo' : request.user.username,
                 'billEmail' : request.user.email,
