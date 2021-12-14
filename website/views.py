@@ -215,6 +215,7 @@ def signup(request):
         return render(request, 'registration.html', context)
 
 
+@login_required(login_url=login_page)
 def logout_page(request):
     logout(request)
     return redirect(login_page)
@@ -1251,11 +1252,13 @@ def buy(request):
     # )
 
 
+@login_required(login_url=login_page)
 def removeCart(request, item_id):
 
     cart.objects.get(id=item_id).delete()
     return redirect(my_orders)
 
+@login_required(login_url=login_page)
 def calculator(request):
     if request.method == "POST":
 
